@@ -24,10 +24,6 @@
 using namespace std;
 using namespace swganh::object::building;
 
-namespace swganh {
-namespace object {
-namespace building {
-
 Building::Building(void)
     : BaseTangible()
 {
@@ -47,4 +43,7 @@ boost::optional<swganh::messages::BaselinesMessage> Building::GetBaseline6(void)
     return BuildingMessageBuilder::GetBaseline6(this);
 }
 
-}}} // namespace swganh::object::building
+uint32_t Building::GetType() const
+{
+    return type;
+}
