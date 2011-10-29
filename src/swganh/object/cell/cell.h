@@ -51,7 +51,8 @@ public:
     virtual boost::optional<swganh::messages::BaselinesMessage> GetBaseline6(void);
 
 private:
-    uint32_t cell_number_;			//update 3
+    friend class CellMessageBuilder;
+    uint32_t cell_number_;			//update 3 variable 4
 
 };
 

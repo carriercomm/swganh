@@ -41,17 +41,13 @@ struct GuildTag
 
     void Serialize(swganh::messages::BaselinesMessage& message)
     {
-        std::stringstream ss;
-        ss << id << ":" << abbreviation;
-
+        std::stringstream ss; ss << id << ":" << abbreviation;
         message.data.write<std::string>(ss.str());
     }
 
     void Serialize(swganh::messages::DeltasMessage& message)
     {
-        std::stringstream ss;
-        ss << id << ":" << abbreviation;
-
+        std::stringstream ss; ss << id << ":" << abbreviation;
         message.data.write<std::string>(ss.str());
     }
 
