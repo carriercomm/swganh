@@ -18,33 +18,26 @@
  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "swganh/object/building/building.h"
-#include "swganh/object/building/building_message_builder.h"
+#ifndef SWGANH_OBJECT_BUILDING_BUILDING_MESSAGE_BUILDER_H_
+#define SWGANH_OBJECT_BUILDING_BUILDING_MESSAGE_BUILDER_H_
 
-using namespace std;
-using namespace swganh::object::building;
+#include "building.h"
 
 namespace swganh {
 namespace object {
 namespace building {
 
-Building::Building(void)
-    : BaseTangible()
+class BuildingMessageBuilder
 {
-}
+public:
 
-Building::~Building(void)
-{
-}
+    // deltas
 
-boost::optional<swganh::messages::BaselinesMessage> Building::GetBaseline3(void)
-{
-    return BuildingMessageBuilder::GetBaseline3(this);
-}
-
-boost::optional<swganh::messages::BaselinesMessage> Building::GetBaseline6(void)
-{
-    return BuildingMessageBuilder::GetBaseline6(this);
-}
+    // baselines
+    static boost::optional<swganh::messages::BaselinesMessage> GetBaseline3(Building* building);
+    static boost::optional<swganh::messages::BaselinesMessage> GetBaseline6(Building* building);
+};
 
 }}} // namespace swganh::object::building
+
+#endif // SWGANH_OBJECT_BUILDING_BUILDING_MESSAGE_BUILDER_H_ 

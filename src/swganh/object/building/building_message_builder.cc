@@ -18,33 +18,28 @@
  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "swganh/object/building/building.h"
-#include "swganh/object/building/building_message_builder.h"
+#include "building_message_builder.h"
 
-using namespace std;
-using namespace swganh::object::building;
+using namespace swganh::object;
+using namespace swganh::messages;
+using namespace swganh::messages::containers;
 
 namespace swganh {
 namespace object {
 namespace building {
 
-Building::Building(void)
-    : BaseTangible()
+boost::optional<BaselinesMessage> BuildingMessageBuilder::GetBaseline3(Building* building)
 {
+    auto message = building->CreateBaselinesMessage(Object::VIEW_3, 5);
+    message.data.append(building->BaseTangible::GetBaseline3().get().data);
+    return boost::optional<BaselinesMessage>(std::move(message));
 }
 
-Building::~Building(void)
+boost::optional<BaselinesMessage> BuildingMessageBuilder::GetBaseline6(Building* building)
 {
-}
-
-boost::optional<swganh::messages::BaselinesMessage> Building::GetBaseline3(void)
-{
-    return BuildingMessageBuilder::GetBaseline3(this);
-}
-
-boost::optional<swganh::messages::BaselinesMessage> Building::GetBaseline6(void)
-{
-    return BuildingMessageBuilder::GetBaseline6(this);
+    auto message = building->CreateBaselinesMessage(Object::VIEW_6, 5);
+    message.data.append(building->BaseTangible::GetBaseline6().get().data);
+    return boost::optional<BaselinesMessage>(std::move(message));
 }
 
 }}} // namespace swganh::object::building
