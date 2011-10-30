@@ -18,34 +18,22 @@
  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#ifndef SWGANH_OBJECT_FACTORY_CRATE_FACTORY_CRATE_H_
-#define SWGANH_OBJECT_FACTORY_CRATE_FACTORY_CRATE_H_
+#include "factory_crate_message_builder.h"
+#include "factory_crate.h"
 
-#include "swganh/object/tangible/base_tangible.h"
+using namespace swganh::object::factory_crate;
+using namespace swganh::messages;
 
-namespace swganh {
-namespace object {
-namespace factory_crate {
-
-class FactoryCrate : public swganh::object::tangible::BaseTangible
+boost::optional<BaselinesMessage> FactoryCrateMessageBuilder::GetBaseline3(FactoryCrate* factory_crate)
 {
-public:
-    FactoryCrate(void);
-    ~FactoryCrate(void);
+    auto message = factory_crate->CreateBaselinesMessage(Object::VIEW_3, 11);
+    message.data.append(factory_crate->BaseTangible::GetBaseline3().get().data);
+    return boost::optional<BaselinesMessage>(std::move(message));
+}
 
-    // FCYT
-    uint32_t GetType() const;
-    const static uint32_t type = 0x46435954;
-
-    virtual boost::optional<swganh::messages::BaselinesMessage> GetBaseline3(void);
-    virtual boost::optional<swganh::messages::BaselinesMessage> GetBaseline6(void);
-
-private:
-    friend class FactoryCrateFactory;
-    friend class FactoryCrateMessageBuilder;
-
-};
-
-}}} // swganh::object::factory_crate
-
-#endif //SWGANH_OBJECT_FACTORY_CRATE_FACTORY_CRATE_H_
+boost::optional<BaselinesMessage> FactoryCrateMessageBuilder::GetBaseline6(FactoryCrate* factory_crate)
+{
+    auto message = factory_crate->CreateBaselinesMessage(Object::VIEW_6, 11);
+    message.data.append(factory_crate->BaseTangible::GetBaseline6().get().data);
+    return boost::optional<BaselinesMessage>();
+}

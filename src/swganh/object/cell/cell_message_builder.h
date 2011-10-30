@@ -18,34 +18,26 @@
  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#ifndef SWGANH_OBJECT_FACTORY_CRATE_FACTORY_CRATE_H_
-#define SWGANH_OBJECT_FACTORY_CRATE_FACTORY_CRATE_H_
+#ifndef SWGANH_OBJECT_CELL_CELL_MESSAGE_BUILDER_H_
+#define SWGANH_OBJECT_CELL_CELL_MESSAGE_BUILDER_H_
 
-#include "swganh/object/tangible/base_tangible.h"
+#include "cell.h"
 
 namespace swganh {
 namespace object {
-namespace factory_crate {
+namespace cell {
 
-class FactoryCrate : public swganh::object::tangible::BaseTangible
+class CellMessageBuilder
 {
 public:
-    FactoryCrate(void);
-    ~FactoryCrate(void);
+    // deltas
+    static void BuildCellIdDeltas(Cell* cell);
 
-    // FCYT
-    uint32_t GetType() const;
-    const static uint32_t type = 0x46435954;
-
-    virtual boost::optional<swganh::messages::BaselinesMessage> GetBaseline3(void);
-    virtual boost::optional<swganh::messages::BaselinesMessage> GetBaseline6(void);
-
-private:
-    friend class FactoryCrateFactory;
-    friend class FactoryCrateMessageBuilder;
-
+    // baselines
+    static boost::optional<swganh::messages::BaselinesMessage> GetBaseline3(Cell* cell);
+    static boost::optional<swganh::messages::BaselinesMessage> GetBaseline6(Cell* cell);
 };
 
-}}} // swganh::object::factory_crate
+}}} // namespace swganh::object::cell
 
-#endif //SWGANH_OBJECT_FACTORY_CRATE_FACTORY_CRATE_H_
+#endif // SWGANH_OBJECT_CELL_CELL_MESSAGE_BUILDER_H_
