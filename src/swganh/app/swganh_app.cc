@@ -24,6 +24,7 @@
 #include "swganh/connection/connection_service.h"
 #include "swganh/login/login_service.h"
 #include "swganh/simulation/simulation_service.h"
+#include "swganh/sui/sui_service.h"
 #include "swganh/galaxy/galaxy_service.h"
 
 
@@ -39,6 +40,7 @@ using namespace swganh::login;
 using namespace swganh::character;
 using namespace swganh::connection;
 using namespace swganh::simulation;
+using namespace swganh::sui;
 using namespace swganh::galaxy;
 
 options_description AppConfig::BuildConfigDescription() {
@@ -301,6 +303,10 @@ void SwganhApp::LoadCoreServices_()
 		kernel_->GetServiceManager()->AddService(
             "ChatService", 
             make_shared<ChatService>(kernel_.get()));
+
+        kernel_->GetServiceManager()->AddService(
+            "SuiService",
+            make_shared<SuiService>(kernel_.get()));
 
 		auto simulation_service = make_shared<SimulationService>(kernel_.get());
 		simulation_service->StartScene("corellia");
