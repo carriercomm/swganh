@@ -35,11 +35,14 @@ struct SuiEventNotification : public swganh::messages::BaseSwgMessage<SuiEventNo
 
     uint32_t window_id;
     uint32_t cancel;
-    std::list<std::pair<std::wstring, std::wstring>> options;
+    std::wstring first;
+	std::wstring second;
 
 
     void onSerialize(anh::ByteBuffer& buffer) const {
-
+		buffer.write<uint32_t>(window_id);
+		buffer.write<uint32_t>(cancel);
+		
     }
 
     void onDeserialize(anh::ByteBuffer buffer) {
@@ -51,15 +54,15 @@ struct SuiEventNotification : public swganh::messages::BaseSwgMessage<SuiEventNo
         if(count)
         {
             buffer.read<uint32_t>();
-            std::wstring str = buffer.read<std::wstring>();
-            std::wstring str2 = buffer.read<std::wstring>();
-            std::cout << "First: " << std::string(str.begin(), str.end()) << std::endl;
-            std::cout << "Second: " << std::string(str2.begin(), str2.end()) << std::endl;
+            first = buffer.read<std::wstring>();
+            second = buffer.read<std::wstring>();
+            std::cout << "First: " << std::string(first.begin(), first.end()) << std::endl;
+            std::cout << "Second: " << std::string(second.begin(), second.end()) << std::endl;
         }
         else
         {
-            std::wstring str = buffer.read<std::wstring>();
-            std::cout << "First: " << std::string(str.begin(), str.end()) << std::endl;
+            first = buffer.read<std::wstring>();
+            std::cout << "First: " << std::string(first.begin(), first.end()) << std::endl;
         }
     }
 };

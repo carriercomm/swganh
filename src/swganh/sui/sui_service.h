@@ -27,9 +27,15 @@
 #include <string>
 
 #include "swganh/base/base_service.h"
-#include "swganh/command/command_service.h"
-
 #include "swganh/messages/sui_event_notification.h"
+#include "swganh/sui/sui_window.h"
+
+namespace swganh {
+namespace object {
+
+class Object;
+
+}} // namespace swganh::object
 
 namespace swganh {
 namespace connection {
@@ -56,7 +62,7 @@ public:
 
     // SuiService API Methods
     std::shared_ptr<SuiWindow> GetSuiWindowById(uint64_t id);
-    bool ManageWindow(std::shared_ptr<SuiWindow> window);
+    bool ManageWindow(SuiWindow&& window);
     bool DestroyWindow(uint64_t id);
     
 
@@ -65,7 +71,7 @@ private:
     void HandleCommand(std::shared_ptr<swganh::object::Object>, uint64_t, uint64_t, std::wstring);
     void HandleSuiEventNotification(std::shared_ptr<swganh::connection::ConnectionClient> client, const swganh::messages::SuiEventNotification& message);
 
-    std::shared_ptr<swganh::command::CommandService> command_service_;
+	std::map<uint32_t, SuiWindow> windows_;
 
 };
 

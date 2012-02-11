@@ -27,7 +27,9 @@
 #include "swganh/object/object.h"
 #include "swganh/network/remote_client.h"
 #include "anh/service/service_manager.h"
+#include "sui_window.h"
 
+#include "swganh/command/command_service.h"
 #include "swganh/connection/connection_service.h"
 #include "swganh/connection/connection_client.h"
 
@@ -42,7 +44,6 @@ namespace sui {
 SuiService::SuiService(anh::app::KernelInterface* kernel)
     : BaseService(kernel)
 {
-    command_service_ = kernel->GetServiceManager()->GetService<swganh::command::CommandService>("CommandService");
 }
 
 SuiService::~SuiService(void)
@@ -65,6 +66,7 @@ anh::service::ServiceDescription SuiService::GetServiceDescription(void)
 
 void SuiService::onStart(void)
 {
+	auto command_service_ = kernel()->GetServiceManager()->GetService<swganh::command::CommandService>("CommandService");
     command_service_->SetCommandHandler(anh::memcrc("attack"), boost::bind(&SuiService::HandleCommand, this, _1, _2, _3, _4));
 
     auto connection_service = std::static_pointer_cast<swganh::connection::ConnectionService>(kernel()->GetServiceManager()->GetService("ConnectionService"));
@@ -78,7 +80,19 @@ void SuiService::onStop(void)
 
 void SuiService::HandleSuiEventNotification(std::shared_ptr<ConnectionClient> client, const swganh::messages::SuiEventNotification& message)
 {
-    LOG(ERROR) << "SuiEventNotification";
+	auto iter = windows_.find(message.window_id);
+	if(iter != windows_.end())
+	{
+		if(message.cancel) 
+		{
+			iter->second.cancel_callback_();
+			// Close
+		}
+		else
+		{
+			iter->second.success_callback_(swganh::sui::ReturnElements());
+		}
+	}
 }
 
 void SuiService::HandleCommand(std::shared_ptr<swganh::object::Object> object, uint64_t object_id, uint64_t target_it, std::wstring properties)
@@ -98,11 +112,12 @@ void SuiService::HandleCommand(std::shared_ptr<swganh::object::Object> object, u
     window.write<uint16_t>(0);
     window.write<uint16_t>(1);
     window.write<uint8_t>(9);
-    window.write<std::string>("onGuildSponsoredOptionsResponse");
+    window.write<std::string>("");
     window.write<std::string>("List.lstList");
     window.write<std::string>("SelectedRow");
     window.write<std::string>("bg.caption.lblTitle");
     window.write<std::string>("Text");
+
 
     window.write<uint8_t>(5);
     window.write<uint32_t>(0);
@@ -110,7 +125,7 @@ void SuiService::HandleCommand(std::shared_ptr<swganh::object::Object> object, u
     window.write<uint16_t>(0);
     window.write<uint16_t>(1);
     window.write<uint8_t>(9);
-    window.write<std::string>("onGuildSponsoredOptionsResponse");
+    window.write<std::string>("");
     window.write<std::string>("List.lstList");
     window.write<std::string>("SelectedRow");
     window.write<std::string>("bg.caption.lblTitle");
@@ -182,6 +197,25 @@ void SuiService::HandleCommand(std::shared_ptr<swganh::object::Object> object, u
     window.write<uint64_t>(0);
     window.write<uint32_t>(0);
     object->GetController()->GetRemoteClient()->GetSession()->SendMessage(window);
+
+	/**
+	SuiWindow window;
+	window.SetUiScript("Script.messageBox");
+	window.SetId(1000);
+	window.SetBodyElement("btnOk", "Text", L"@ok");
+	window.SetBodyElement("Prompt.lblPrompt", "Text", L"Hello");
+	window.SetBodyElement("btnCancel", "Visible", L"False");
+	window.SetBodyElement("btnRevert", "Visible", L"False");
+	window.SetBodyElement("btnOk", "TextColor", L"#FF00FF");
+	window.SetBodyElement("messageBox", "MinimumSize", L"200,275");
+	window.SetBodyElement("bg.caption.lblTitle", "Text", L"Hello World.");
+	window.AddReturnElement("bg.caption.lblTitle", "Text");
+	//window.AddReturnElement("bg.caption.lblTitle", "Text");
+
+	anh::ByteBuffer message;
+	window.onSerialize(message);
+	object->GetController()->GetRemoteClient()->GetSession()->SendMessage(message);
+	**/
 }
 
 }} // namespace swganh::sui
