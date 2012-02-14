@@ -1,4 +1,3 @@
-
 #include "swganh/app/swganh_app.h"
 
 #include <algorithm>
@@ -11,7 +10,6 @@
 #include <glog/logging.h>
 
 #include "anh/database/database_manager_interface.h"
-#include "anh/event_dispatcher/event_dispatcher_interface.h"
 #include "anh/plugin/plugin_manager.h"
 #include "anh/service/datastore.h"
 #include "anh/service/service_manager.h"
@@ -21,6 +19,7 @@
 #include "swganh/chat/chat_service.h"
 #include "swganh/character/character_service.h"
 #include "swganh/command/command_service.h"
+#include "swganh/command/command_filter.h"
 #include "swganh/connection/connection_service.h"
 #include "swganh/login/login_service.h"
 #include "swganh/simulation/simulation_service.h"
@@ -175,13 +174,11 @@ void SwganhApp::Start() {
     auto timer = make_shared<boost::asio::deadline_timer>(kernel_->GetIoService(), boost::posix_time::seconds(10));
 
     timer->async_wait(boost::bind(&SwganhApp::GalaxyStatusTimerHandler_, this, boost::asio::placeholders::error, timer, 10));
+}
 
-    do {
-        kernel_->GetEventDispatcher()->tick();
-
-        boost::this_thread::sleep(boost::posix_time::milliseconds(1));
-    } while(IsRunning());
-        
+void SwganhApp::Stop() {
+    running_ = false;
+      
     kernel_->GetServiceManager()->Stop();
 
     // stop io handling    
@@ -191,10 +188,6 @@ void SwganhApp::Start() {
     for_each(io_threads_.begin(), io_threads_.end(), [] (shared_ptr<boost::thread> t) {
         t->join();
     });
-}
-
-void SwganhApp::Stop() {
-    running_ = false;
 }
 
 bool SwganhApp::IsRunning() {
@@ -292,10 +285,21 @@ void SwganhApp::LoadCoreServices_()
 	}
 	if(strcmp("simulation", app_config.server_mode.c_str()) == 0 || strcmp("all", app_config.server_mode.c_str()) == 0)
 	{
+		auto command_service = make_shared<CommandService>(kernel_.get());
+		// add filters
+		command_service->AddCommandEnqueueFilter(bind(&CommandFilters::TargetCheckFilter, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+		command_service->AddCommandEnqueueFilter(bind(&CommandFilters::PostureCheckFilter, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+		command_service->AddCommandEnqueueFilter(bind(&CommandFilters::StateCheckFilter, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+		command_service->AddCommandEnqueueFilter(bind(&CommandFilters::AbilityCheckFilter, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+		command_service->AddCommandProcessFilter(bind(&CommandFilters::TargetCheckFilter, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+		command_service->AddCommandProcessFilter(bind(&CommandFilters::PostureCheckFilter, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+		command_service->AddCommandProcessFilter(bind(&CommandFilters::StateCheckFilter, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+		command_service->AddCommandProcessFilter(bind(&CommandFilters::AbilityCheckFilter, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+
 		kernel_->GetServiceManager()->AddService(
             "CommandService", 
-            make_shared<CommandService>(kernel_.get()));
-
+            command_service);
+		
 		kernel_->GetServiceManager()->AddService(
             "CharacterService", 
             make_shared<CharacterService>(kernel_.get()));

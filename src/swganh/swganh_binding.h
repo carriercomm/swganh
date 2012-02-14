@@ -20,10 +20,10 @@
 */
 
 // Bindings
+#include "swganh/glm_binding.h"
 #include "swganh/python_shared_ptr.h"
 #include "swganh/object/object_binding.h"
-#include "swganh/messages/update_transform_message_with_parent_binding.h"
-#include "swganh/messages/update_transform_message_binding.h"
-#include "swganh/messages/update_pvp_status_message_binding.h"
-#include "swganh/messages/update_posture_message_binding.h"
-#include "swganh/messages/update_containment_message_binding.h"
+#include "swganh/object/creature/creature_binding.h"
+#include "swganh/object/player/player_binding.h"
+#include "swganh/object/guild/guild_binding.h"
+#include "swganh/object/tangible/tangible_binding.h"

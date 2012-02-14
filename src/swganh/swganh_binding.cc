@@ -26,21 +26,14 @@ using namespace boost::python;
 using namespace std;
 
 void exportObject();
-void exportUpdateTransformWithParentMessage();
-void exportUpdateTransformMessage();
-void exportUpdatePvpStatusMessage();
-void exportUpdatePostureMessage();
-void exportUpdateContainmentMessage();
-
-string hello () { return "Hello" ; }
+void exportTangible();
+void exportCreature();
+void exportPlayer();
 
 BOOST_PYTHON_MODULE(swganh_binding) {
 	
-	def("hello", &hello);
 	exportObject();
-	exportUpdateTransformWithParentMessage();
-	exportUpdateTransformMessage();
-	exportUpdatePvpStatusMessage();
-	exportUpdatePostureMessage();
-	exportUpdateContainmentMessage();
+	exportTangible();
+	exportCreature();
+	exportPlayer();
 }
