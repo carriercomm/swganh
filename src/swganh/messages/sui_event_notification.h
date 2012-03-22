@@ -22,9 +22,9 @@
 #define SWGANH_MESSAGES_SUI_EVENT_NOTIFICATION_H_
 
 #include <cstdint>
-#include <iostream>
 #include "anh/byte_buffer.h"
 #include "swganh/messages/base_swg_message.h"
+#include <glog/logging.h>
 
 namespace swganh {
 namespace messages {
@@ -35,8 +35,7 @@ struct SuiEventNotification : public swganh::messages::BaseSwgMessage<SuiEventNo
 
     uint32_t window_id;
     uint32_t cancel;
-    std::wstring first;
-	std::wstring second;
+    std::vector<std::wstring> results;
 
 
     void onSerialize(anh::ByteBuffer& buffer) const {
@@ -50,20 +49,13 @@ struct SuiEventNotification : public swganh::messages::BaseSwgMessage<SuiEventNo
         cancel = buffer.read<uint32_t>();
 
         uint32_t count = buffer.read<uint32_t>();
+		buffer.read<uint32_t>(); // count 2?
 
-        if(count)
-        {
-            buffer.read<uint32_t>();
-            first = buffer.read<std::wstring>();
-            second = buffer.read<std::wstring>();
-            std::cout << "First: " << std::string(first.begin(), first.end()) << std::endl;
-            std::cout << "Second: " << std::string(second.begin(), second.end()) << std::endl;
-        }
-        else
-        {
-            first = buffer.read<std::wstring>();
-            std::cout << "First: " << std::string(first.begin(), first.end()) << std::endl;
-        }
+		for(uint32_t x = 0; x < count; x++)
+		{
+			results.push_back(buffer.read<std::wstring>());
+			LOG(ERROR) << std::string(results[x].begin(), results[x].end());
+		}
     }
 };
 

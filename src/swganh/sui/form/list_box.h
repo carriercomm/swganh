@@ -18,31 +18,23 @@
  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "sui_window.h"
+#ifndef SWGANH_SUI_FORM_LIST_BOX_H_
+#define SWGANH_SUI_FORM_LIST_BOX_H_
 
-#include <glog/logging.h>
-
-#include "anh/crc.h"
+#include <swganh/sui/sui_window.h>
 
 namespace swganh {
 namespace sui {
+namespace form {
 
-SuiWindow::SuiWindow(void)
+class ListBox
 {
-}
+public:
+	ListBox();
+	~ListBox();
 
-SuiWindow::~SuiWindow(void)
-{
-}
+};
 
-messages::SuiCreatePageMessage SuiWindow::onCreate(void)
-{
-	messages::SuiCreatePageMessage message;
-	message.id = id_;
-	message.ui_script = ui_script_;
-	message.handler = handler_;
-	message.max_distance = max_distance_;
-	return message;
-}
+}}} // namespace swganh::sui::form
 
-}} // swganh::sui
+#endif // SWGANH_SUI_FORM_LIST_BOX_H_

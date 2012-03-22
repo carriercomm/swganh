@@ -38,6 +38,14 @@ class Object;
 }} // namespace swganh::object
 
 namespace swganh {
+namespace object {
+namespace creature {
+
+class Creature;
+
+}}} // namespace swganh::object::creature
+
+namespace swganh {
 namespace connection {
 
 class ConnectionClient;
@@ -68,7 +76,11 @@ public:
 
 private:
 
-    void HandleCommand(std::shared_ptr<swganh::object::Object>, uint64_t, uint64_t, std::wstring);
+    void HandleCommand(
+		const std::shared_ptr<swganh::object::creature::Creature>&, 
+		const std::shared_ptr<swganh::object::Object>&, 
+		std::wstring);
+
     void HandleSuiEventNotification(std::shared_ptr<swganh::connection::ConnectionClient> client, const swganh::messages::SuiEventNotification& message);
 
 	std::map<uint32_t, SuiWindow> windows_;

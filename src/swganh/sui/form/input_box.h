@@ -18,31 +18,34 @@
  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "sui_window.h"
+#ifndef SWGANH_SUI_FORM_INPUT_BOX_H_
+#define SWGANH_SUI_FORM_INPUT_BOX_H_
 
-#include <glog/logging.h>
+#include <swganh/sui/sui_window.h>
+#include "swganh/messages/sui_create_page_message.h"
 
-#include "anh/crc.h"
+#include <vector>
 
 namespace swganh {
 namespace sui {
+namespace form {
 
-SuiWindow::SuiWindow(void)
+class InputBox : public SuiWindow
 {
-}
+public:
+	explicit InputBox(std::string title, std::string prompt);
+	~InputBox(void);
 
-SuiWindow::~SuiWindow(void)
-{
-}
+	messages::SuiCreatePageMessage onCreate();
 
-messages::SuiCreatePageMessage SuiWindow::onCreate(void)
-{
-	messages::SuiCreatePageMessage message;
-	message.id = id_;
-	message.ui_script = ui_script_;
-	message.handler = handler_;
-	message.max_distance = max_distance_;
-	return message;
-}
+	void SetTitle(std::string title);
+	void SetCaption(std::string caption);
 
-}} // swganh::sui
+private:
+	std::string title_;
+	std::string caption_;
+};
+
+}}} // swganh::sui::form
+
+#endif // SWGANH_SUI_FORM_INPUT_BOX_H_

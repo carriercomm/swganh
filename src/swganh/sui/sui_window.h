@@ -25,18 +25,16 @@
 #include <memory>
 #include <functional>
 #include <tuple>
+#include <map>
 
 #include "anh/byte_buffer.h"
 #include "swganh/object/object.h"
+#include "swganh/messages/sui_create_page_message.h"
 
 namespace swganh {
 namespace sui {
 
-typedef std::tuple<std::string, std::string, std::wstring> BodyElement;
-typedef std::vector<BodyElement> BodyElements;
-
-typedef std::pair<std::string, std::string> ReturnElement;
-typedef std::vector<ReturnElement> ReturnElements;
+typedef std::vector<std::wstring> ResultSet;
 
 class SuiService;
 class SuiWindow
@@ -45,8 +43,8 @@ public:
     SuiWindow(void);
     ~SuiWindow(void);
 
-    virtual void onSerialize(anh::ByteBuffer& message);
-
+	messages::SuiCreatePageMessage onCreate(void);
+	
     uint32_t GetId() { return id_; }
 
     std::string GetUiScript() { return ui_script_; }
@@ -56,29 +54,22 @@ public:
 	void SetMaxDistance(float max_distance) { max_distance_ = max_distance; }
 
 	void SetCancelCallback(std::function<void()> callback) { cancel_callback_ = callback; }
-	void SetSuccessCallback(std::function<void(ReturnElements)> callback) { success_callback_ = callback; }
+	void SetSuccessCallback(std::function<void(ResultSet&)> callback) { success_callback_ = callback; }
 
-	void SetHandlerString(std::string handler) { handler_ = handler; }
-	std::string GetHandlerString(void) { return handler_; }
-
-    void AddReturnElement(std::string, std::string);
-	void SetBodyElement(std::string object, std::string variable, std::wstring value);
+	void SetHandler(std::string handler) { handler_ = handler; }
+	std::string GetHandler(void) { return handler_; }
 
 private:
 	friend SuiService;
 
 	void SetId(uint32_t id) { id_ = id; }
-	void OnEventNotification();
 
     uint32_t id_;
     std::string ui_script_;
 	std::string handler_;
     std::shared_ptr<swganh::object::Object> owner_;
-	ReturnElements return_elements_;
-	BodyElements elements_;
     float max_distance_;
-
-	std::function<void(ReturnElements)> success_callback_;
+	std::function<void(ResultSet&)> success_callback_;
 	std::function<void()> cancel_callback_;
 };
 

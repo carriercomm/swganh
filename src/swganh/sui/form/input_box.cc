@@ -18,31 +18,43 @@
  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "sui_window.h"
-
-#include <glog/logging.h>
-
-#include "anh/crc.h"
+#include "input_box.h"
+#include <glog\logging.h>
 
 namespace swganh {
 namespace sui {
+namespace form {
 
-SuiWindow::SuiWindow(void)
+InputBox::InputBox(std::string title, std::string caption)
+	: title_(title)
+	, caption_(caption)
+{
+	SetUiScript("Script.inputBox");
+}
+
+InputBox::~InputBox(void)
 {
 }
 
-SuiWindow::~SuiWindow(void)
+messages::SuiCreatePageMessage InputBox::onCreate()
 {
-}
-
-messages::SuiCreatePageMessage SuiWindow::onCreate(void)
-{
-	messages::SuiCreatePageMessage message;
-	message.id = id_;
-	message.ui_script = ui_script_;
-	message.handler = handler_;
-	message.max_distance = max_distance_;
+	messages::SuiCreatePageMessage message = SuiWindow::onCreate();
+	message.AddPropertyResult("txtInput", "LocalText");
+	message.AddPropertyValue("cmbInput", "Visible", L"false");
+	message.AddPropertyValue("cmbInput", "Enabled", L"false");
+	message.AddPropertyValue("bg.caption.lblTitle", "Text", std::wstring(title_.begin(), title_.end()));
+	message.AddPropertyValue("Prompt.lblPrompt", "Text", std::wstring(caption_.begin(), caption_.end()));
 	return message;
 }
 
-}} // swganh::sui
+void InputBox::SetTitle(std::string title)
+{
+	title_ = title;
+}
+
+void InputBox::SetCaption(std::string caption)
+{
+	caption_ = caption;
+}
+
+}}} // swganh::sui::form
