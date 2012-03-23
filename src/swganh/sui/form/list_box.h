@@ -23,15 +23,35 @@
 
 #include <swganh/sui/sui_window.h>
 
+#include <map>
+
 namespace swganh {
 namespace sui {
 namespace form {
 
-class ListBox
+class ListBox : public swganh::sui::SuiWindow
 {
 public:
 	ListBox();
+	ListBox(std::wstring caption, std::wstring prompt);
 	~ListBox();
+
+	void SetCaption(std::wstring caption) { caption_ = caption; }
+	void SetPrompt(std::wstring prompt) { prompt_ = prompt; }
+
+	void AddItem(std::wstring value);
+	void AddItem(std::wstring index, std::wstring value);
+	void RemoveItem(std::wstring index);
+
+	std::wstring GetCaption(void) { return caption_; }
+	std::wstring GetPrompt(void) { return prompt_; }
+
+	messages::SuiCreatePageMessage onCreate(void);
+
+private:
+	std::wstring caption_;
+	std::wstring prompt_;
+	std::map<std::wstring, std::wstring> items_;
 
 };
 

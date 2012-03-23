@@ -41,6 +41,14 @@ struct SuiCreatePageMessage : public swganh::messages::BaseSwgMessage<SuiCreateP
 	static uint16_t opcount() { return 0x02; }
 	static uint32_t opcode() { return 0xD44B7259; }
 
+	SuiCreatePageMessage()
+		: id(0)
+		, ui_script("")
+		, handler("")
+		, max_distance(0)
+		, target_id(0) 
+	{ }
+
 	uint32_t id;
 	std::string ui_script; 
 	std::string handler;
@@ -49,6 +57,7 @@ struct SuiCreatePageMessage : public swganh::messages::BaseSwgMessage<SuiCreateP
 	std::vector<PropertyHeader> property_headers;
 	std::vector<PropertyResult> property_results;
 	float max_distance;
+	uint64_t target_id;
 
 	void AddPropertyContainer(std::string location)
 	{
@@ -73,7 +82,7 @@ struct SuiCreatePageMessage : public swganh::messages::BaseSwgMessage<SuiCreateP
 	void onSerialize(anh::ByteBuffer& buffer) const {
 		buffer.write<uint32_t>(id);
 		buffer.write<std::string>(ui_script);
-		buffer.write<uint32_t>(2 + property_values.size() + property_headers.size());
+		buffer.write<uint32_t>(2 + property_values.size() + property_headers.size() + property_containers.size());
 	
 		// Yes, this must be ran twice, we do not know why SOE
 		// insisted the headers be defined twice, but that's the way
@@ -93,6 +102,14 @@ struct SuiCreatePageMessage : public swganh::messages::BaseSwgMessage<SuiCreateP
 			});
 		}
 
+		
+		std::for_each(property_containers.begin(), property_containers.end(), [&buffer](const std::string& location) {
+			buffer.write<uint8_t>(1);
+			buffer.write<uint32_t>(0);
+			buffer.write<uint32_t>(1);
+			buffer.write<std::string>(location);
+		});
+
 		std::for_each(property_headers.begin(), property_headers.end(), [&buffer](const PropertyHeader& element) {
 			buffer.write<uint8_t>(4);
 			buffer.write<uint32_t>(1);
@@ -111,7 +128,7 @@ struct SuiCreatePageMessage : public swganh::messages::BaseSwgMessage<SuiCreateP
 			buffer.write<std::string>(std::get<1>(element));
 		});
 
-		buffer.write<uint64_t>(0);
+		buffer.write<uint64_t>(target_id);
 		buffer.write<float>(max_distance);
 		buffer.write<uint64_t>(0);
 	

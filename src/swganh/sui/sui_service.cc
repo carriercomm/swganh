@@ -29,7 +29,7 @@
 #include "swganh/network/remote_client.h"
 #include "anh/service/service_manager.h"
 #include "sui_window.h"
-#include "form/input_box.h"
+#include "form/list_box.h"
 
 #include "swganh/command/command_service.h"
 #include "swganh/connection/connection_service.h"
@@ -99,19 +99,21 @@ void SuiService::HandleSuiEventNotification(std::shared_ptr<ConnectionClient> cl
 
 void SuiService::HandleCommand(const std::shared_ptr<swganh::object::creature::Creature>& object, const std::shared_ptr<swganh::object::Object>& target, std::wstring properties)
 {
-	swganh::sui::form::InputBox inputBox("Name Change", "Enter a new name for your character.");
-	inputBox.SetId(rand());
-
-	inputBox.SetCancelCallback([=](void){
+	swganh::sui::form::ListBox listbox(L"Name Change", L"Enter a new name for your character.");
+	listbox.SetId(rand());
+	listbox.AddItem(L"0", L"Accept");
+	listbox.AddItem(L"1", L"Deny");
+	listbox.SetCancelCallback([=](void){
 		LOG(ERROR) << "Gui Canceled.";
 	});
 
-	inputBox.SetSuccessCallback([=](sui::ResultSet& result) {
-		object->SetCustomName(result[0]);
+	listbox.SetSuccessCallback([=](sui::ResultSet& result) {
+		//LOG(ERROR) << result[0];
+		//object->SetCustomName(result[0]);
 	});
 
-	object->GetController()->GetRemoteClient()->Send(inputBox.onCreate());
-	windows_.insert(std::pair<uint32_t, SuiWindow>(inputBox.GetId(), std::move(inputBox)));
+	object->GetController()->GetRemoteClient()->Send(listbox.onCreate());
+	windows_.insert(std::pair<uint32_t, SuiWindow>(listbox.GetId(), std::move(listbox)));
 }
 
 }} // namespace swganh::sui

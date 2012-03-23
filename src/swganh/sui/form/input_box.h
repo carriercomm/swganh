@@ -22,9 +22,6 @@
 #define SWGANH_SUI_FORM_INPUT_BOX_H_
 
 #include <swganh/sui/sui_window.h>
-#include "swganh/messages/sui_create_page_message.h"
-
-#include <vector>
 
 namespace swganh {
 namespace sui {

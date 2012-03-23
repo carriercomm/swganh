@@ -28,6 +28,11 @@ namespace swganh {
 namespace sui {
 
 SuiWindow::SuiWindow(void)
+	 : id_(0)
+	 , ui_script_("")
+	 , handler_("")
+	 , max_distance_(0)
+	 , target_id_ (0)
 {
 }
 
@@ -42,6 +47,7 @@ messages::SuiCreatePageMessage SuiWindow::onCreate(void)
 	message.ui_script = ui_script_;
 	message.handler = handler_;
 	message.max_distance = max_distance_;
+	message.target_id = target_id_;
 	return message;
 }
 

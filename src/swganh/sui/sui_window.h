@@ -25,7 +25,6 @@
 #include <memory>
 #include <functional>
 #include <tuple>
-#include <map>
 
 #include "anh/byte_buffer.h"
 #include "swganh/object/object.h"
@@ -53,6 +52,9 @@ public:
 	float GetMaxDistance() { return max_distance_; }
 	void SetMaxDistance(float max_distance) { max_distance_ = max_distance; }
 
+	uint64_t GetTargetId() { return target_id_; }
+	void SetTargetId(uint64_t target_id) { target_id_ = target_id; }
+
 	void SetCancelCallback(std::function<void()> callback) { cancel_callback_ = callback; }
 	void SetSuccessCallback(std::function<void(ResultSet&)> callback) { success_callback_ = callback; }
 
@@ -69,6 +71,7 @@ private:
 	std::string handler_;
     std::shared_ptr<swganh::object::Object> owner_;
     float max_distance_;
+	uint64_t target_id_;
 	std::function<void(ResultSet&)> success_callback_;
 	std::function<void()> cancel_callback_;
 };
