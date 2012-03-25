@@ -30,6 +30,7 @@
 #include "anh/service/service_manager.h"
 #include "sui_window.h"
 #include "form/list_box.h"
+#include "form/input_box.h"
 
 #include "swganh/command/command_service.h"
 #include "swganh/connection/connection_service.h"
@@ -99,17 +100,23 @@ void SuiService::HandleSuiEventNotification(std::shared_ptr<ConnectionClient> cl
 
 void SuiService::HandleCommand(const std::shared_ptr<swganh::object::creature::Creature>& object, const std::shared_ptr<swganh::object::Object>& target, std::wstring properties)
 {
-	swganh::sui::form::ListBox listbox(L"Name Change", L"Enter a new name for your character.");
-	listbox.SetId(rand());
-	listbox.AddItem(L"0", L"Accept");
-	listbox.AddItem(L"1", L"Deny");
-	listbox.SetCancelCallback([=](void){
-		LOG(ERROR) << "Gui Canceled.";
-	});
+	swganh::sui::form::ListBox listbox(L"Anh Character Services", L"Which service would you like to use?");
+	listbox.SetId(1);
+	listbox.AddItem(L"0", L"Name Change");
 
 	listbox.SetSuccessCallback([=](sui::ResultSet& result) {
-		//LOG(ERROR) << result[0];
-		//object->SetCustomName(result[0]);
+		if(result[0].compare(std::wstring(L"0")) == 0) // Name Change
+		{
+			auto object2 = object;
+			swganh::sui::form::InputBox inputbox(L"Name Change", L"Enter your characters new name.");
+			inputbox.SetId(2);
+			inputbox.SetSuccessCallback([=](sui::ResultSet& result) {
+				object2->SetCustomName(result[0]);
+			});
+
+			object->GetController()->GetRemoteClient()->Send(inputbox.onCreate());
+			windows_.insert(std::pair<uint32_t, SuiWindow>(inputbox.GetId(), std::move(inputbox)));
+		}
 	});
 
 	object->GetController()->GetRemoteClient()->Send(listbox.onCreate());

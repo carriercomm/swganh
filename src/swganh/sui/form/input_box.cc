@@ -25,7 +25,7 @@ namespace swganh {
 namespace sui {
 namespace form {
 
-InputBox::InputBox(std::string title, std::string caption)
+InputBox::InputBox(std::wstring title, std::wstring caption)
 	: title_(title)
 	, caption_(caption)
 {
@@ -40,6 +40,7 @@ messages::SuiCreatePageMessage InputBox::onCreate()
 {
 	messages::SuiCreatePageMessage message = SuiWindow::onCreate();
 	message.AddPropertyResult("txtInput", "LocalText");
+	message.AddPropertyValue("inputBox", "MinimumSize", L"900,400");
 	message.AddPropertyValue("cmbInput", "Visible", L"false");
 	message.AddPropertyValue("cmbInput", "Enabled", L"false");
 	message.AddPropertyValue("bg.caption.lblTitle", "Text", std::wstring(title_.begin(), title_.end()));
@@ -47,12 +48,12 @@ messages::SuiCreatePageMessage InputBox::onCreate()
 	return message;
 }
 
-void InputBox::SetTitle(std::string title)
+void InputBox::SetTitle(std::wstring title)
 {
 	title_ = title;
 }
 
-void InputBox::SetCaption(std::string caption)
+void InputBox::SetCaption(std::wstring caption)
 {
 	caption_ = caption;
 }
