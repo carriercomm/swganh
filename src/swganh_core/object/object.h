@@ -130,6 +130,27 @@ public:
 		std::shared_ptr<Object>
 	> ObjectMap;
     
+	struct ObjectPtrOps
+	{
+	  bool operator()( const std::shared_ptr<Object> & a, const std::shared_ptr<Object> & b )
+		{
+			if(a->GetContainer() != nullptr)
+			{
+				if(a->GetContainer()->GetObjectId() == b->GetObjectId())
+					return false;
+			}
+			else if(b->GetContainer() != nullptr)
+			{
+				if(b->GetContainer()->GetObjectId() == a->GetObjectId())
+					return true;
+			}
+
+			return a->GetObjectId() < b->GetObjectId(); 
+		}
+	};
+
+	typedef std::set<std::shared_ptr<Object>, ObjectPtrOps> ObjectPtrSet;
+
 	typedef std::shared_ptr<ContainerPermissionsInterface> PermissionsObject;
 
 	Object();
@@ -433,7 +454,7 @@ public:
      */
     void AddDeltasUpdate(swganh::messages::DeltasMessage* message);
 
-    void AddBaselineToCache(swganh::messages::BaselinesMessage* baseline);
+	void AddBaselineToCache(swganh::messages::BaselinesMessage* baseline);
 
     /**
      * Sets the id of this object instance.
@@ -494,6 +515,12 @@ public:
 	{ 
 		return GetObjectId() < other->GetObjectId(); 
 	}
+
+	bool operator> (const std::shared_ptr<Object>& other)
+	{
+		return GetObjectId() > other->GetObjectId();
+	}
+
 	bool operator== (const std::shared_ptr<Object>& other)
 	{
 		return GetObjectId() == other->GetObjectId();
@@ -617,7 +644,7 @@ public:
 	void UpdateWorldCollisionBox();
 	void __InternalUpdateWorldCollisionBox();
 
-	const std::set<std::shared_ptr<Object>>& GetCollidedObjects(void) const { return collided_objects_; }
+	const ObjectPtrSet& GetCollidedObjects(void) const { return collided_objects_; }
 	void AddCollidedObject(std::shared_ptr<Object> obj)
 	{
 		bool found = false;
@@ -670,7 +697,7 @@ protected:
 	//
 	// Spatial
 	//
-	std::set<std::shared_ptr<Object>> collided_objects_;
+	ObjectPtrSet collided_objects_;
 
 	CollisionBox local_collision_box_;
 	CollisionBox world_collision_box_;
@@ -695,7 +722,7 @@ protected:
 			}
 			else
 			{
-				boost::geometry::append(local_collision_box_, Point(0.0f, 0.0f));
+				boost::geometry::append(local_collision_box_, Point(1.0f, 1.0f));
 			}
 	}
 
@@ -704,7 +731,6 @@ protected:
 	swganh::EventDispatcher* event_dispatcher_;
 
 private:
-    
     typedef std::set<std::shared_ptr<swganh::observer::ObserverInterface>> ObserverContainer;
 	typedef std::set<std::shared_ptr<swganh::object::Object>> AwareObjectContainer;
 

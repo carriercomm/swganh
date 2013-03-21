@@ -28,6 +28,8 @@
 #include <cppconn/prepared_statement.h>
 #include <cppconn/sqlstring.h>
 
+#include "swganh_core/simulation/player_view_box.h"
+
 using namespace std;
 using namespace swganh;
 using namespace swganh::service;
@@ -128,6 +130,13 @@ void PlayerService::OnPlayerExit(shared_ptr<swganh::object::Player> player)
 		if(object_controller != nullptr)
 		{
 			deadline_timer->async_wait(boost::bind(&PlayerService::RemoveClientTimerHandler_, this, boost::asio::placeholders::error, deadline_timer, 30, object_controller));
+		}
+
+		// Remove View Box
+		auto view_box = parent->GetViewBox();
+		if(view_box != nullptr){
+			parent->SetViewBox(nullptr);
+			simulation_service_->RemoveObject(view_box);
 		}
     }
 }

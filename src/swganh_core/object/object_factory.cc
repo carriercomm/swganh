@@ -163,7 +163,7 @@ void ObjectFactory::CreateBaseObjectFromStorage(const shared_ptr<Object>& object
 			object->SetPermissions(permissions_objects_.find(DEFAULT_PERMISSION)->second);
 		}
 		object_manager_->LoadSlotsForObject(object);
-		object_manager_->LoadCollisionInfoForObject(object);
+		//object_manager_->LoadCollisionInfoForObject(object);
 
 		auto parent = object_manager_->GetObjectById(result->getUInt64("parent_id"));
 		if(parent != nullptr)
@@ -300,18 +300,15 @@ void ObjectFactory::LoadContainedObjects(
             auto contained_object = object_manager_->CreateObjectFromStorage(contained_id, contained_type);
 
 			swganh::simulation::SimulationServiceInterface* simulation_service = kernel_->GetServiceManager()->GetService<SimulationServiceInterface>("SimulationService");
-			contained_object->SetCustomName(L"Contained object.");
 			if(contained_object->GetArrangementId() == -2)
 			{
 				//This object has never been loaded before and needs to be put into the default slot.
-				std::cout << "Adding contained object... " << contained_object->GetTemplate() << std::endl;
 				object->AddObject(nullptr, contained_object);
 				
 			}
 			else 
 			{
 				//Put it back where it was persisted
-				std::cout << "Adding contained object... " << contained_object->GetTemplate() << std::endl;
 				object->AddObject(nullptr, contained_object, contained_object->GetArrangementId());
 			}
 

@@ -64,7 +64,7 @@ public:
 	void SvgDumpRegions(std::ofstream& file);
 	void SvgDumpObjects(std::ofstream& file);
 
-	std::set<std::shared_ptr<swganh::object::Object>> Query(QueryBox query_box);
+	swganh::object::Object::ObjectPtrSet Query(QueryBox query_box);
 
 	const NodeQuadrant& GetQuadrant(void) { return quadrant_; }
 	const uint32_t& GetLevel(void) { return level_; }

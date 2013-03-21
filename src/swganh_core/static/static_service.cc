@@ -225,11 +225,20 @@ void StaticService::_loadCells(SimulationServiceInterface* simulation_service, s
 		object->SetDatabasePersisted(false);
 
 		auto parent = simulation_service->GetObjectById(result->getInt64(2));
+
+#ifdef SI_METHOD_ONE
 		if(parent != nullptr)
-		{
 			parent->AddObject(nullptr, object);
-		}
+
 		simulation_service->TransferObjectToScene(object, scene_name);
+#elif SI_METHOD_TWO
+		if(parent != nullptr)
+			parent->AddObject(nullptr, object);
+		else
+			simulation_service->TransferObjectToScene(object, scene_name);
+#else
+		simulation_service->TransferObjectToScene(object, scene_name);
+#endif
 	}
 }
 
@@ -281,12 +290,19 @@ void StaticService::_loadTerminals(SimulationServiceInterface* simulation_servic
 		//Put it into the scene
 		uint64_t parent_id = result->getUInt64(2);
 		auto parent = simulation_service->GetObjectById(parent_id);
+#ifdef SI_METHOD_ONE
 		if(parent != nullptr)
-		{
 			parent->AddObject(nullptr, object);
-		}
 
 		simulation_service->TransferObjectToScene(object, scene_name);
+#elif SI_METHOD_TWO
+		if(parent != nullptr)
+			parent->AddObject(nullptr, object);
+		else
+			simulation_service->TransferObjectToScene(object, scene_name);
+#else
+		simulation_service->TransferObjectToScene(object, scene_name);
+#endif
 		
 	}
 }
@@ -358,12 +374,19 @@ void StaticService::_loadTicketCollectors(SimulationServiceInterface* simulation
 
 		uint64_t parent_id = result->getUInt64(2);
 		auto parent = simulation_service->GetObjectById(parent_id);
+#ifdef SI_METHOD_ONE
 		if(parent != nullptr)
-		{
 			parent->AddObject(nullptr, object);
-		}
 
 		simulation_service->TransferObjectToScene(object, scene_name);
+#elif SI_METHOD_TWO
+		if(parent != nullptr)
+			parent->AddObject(nullptr, object);
+		else
+			simulation_service->TransferObjectToScene(object, scene_name);
+#else
+		simulation_service->TransferObjectToScene(object, scene_name);
+#endif
 
 		auto travel_point = result->getString(14).asStdString();
 		object->SetAttribute("travel_point", std::wstring(travel_point.begin(), travel_point.end()));
@@ -439,12 +462,19 @@ void StaticService::_loadNPCS(SimulationServiceInterface* simulation_service, Sp
 		uint64_t parent_id = result->getUInt64(2);
 
 		auto parent = simulation_service->GetObjectById(parent_id);
+#ifdef SI_METHOD_ONE
 		if(parent != nullptr)
-		{
 			parent->AddObject(nullptr, object);
-		}
 
 		simulation_service->TransferObjectToScene(object, scene_name);
+#elif SI_METHOD_TWO
+		if(parent != nullptr)
+			parent->AddObject(nullptr, object);
+		else
+			simulation_service->TransferObjectToScene(object, scene_name);
+#else
+		simulation_service->TransferObjectToScene(object, scene_name);
+#endif
 	}
 }
 
@@ -484,12 +514,19 @@ void StaticService::_loadShuttles(SimulationServiceInterface* simulation_service
 
 		uint64_t parent_id = result->getUInt64(2);
 		auto parent = simulation_service->GetObjectById(parent_id);
+#ifdef SI_METHOD_ONE
 		if(parent != nullptr)
-		{
 			parent->AddObject(nullptr, object);
-		}
 
 		simulation_service->TransferObjectToScene(object, scene_name);
+#elif SI_METHOD_TWO
+		if(parent != nullptr)
+			parent->AddObject(nullptr, object);
+		else
+			simulation_service->TransferObjectToScene(object, scene_name);
+#else
+		simulation_service->TransferObjectToScene(object, scene_name);
+#endif
 
 		object->SetFlag("shuttle");
 

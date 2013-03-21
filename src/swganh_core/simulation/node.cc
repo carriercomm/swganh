@@ -156,13 +156,23 @@ void Node::Split()
 	}
 }
 
-std::set<std::shared_ptr<swganh::object::Object>> Node::Query(QueryBox query_box)
+swganh::object::Object::ObjectPtrSet Node::Query(QueryBox query_box)
 {
-	std::set<std::shared_ptr<swganh::object::Object>> return_list;
+	swganh::object::Object::ObjectPtrSet return_list;
 
 	std::for_each(objects_.begin(), objects_.end(), [=,& return_list](std::shared_ptr<swganh::object::Object> obj) {
-		if(boost::geometry::intersects(obj->GetAABB(), query_box))
+		if(boost::geometry::intersects(obj->GetAABB(), query_box)) {
 			return_list.insert(obj);
+
+#ifdef SI_METHOD_TWO
+			// Check for children intersects.
+			obj->ViewObjects(nullptr, 0, true, [=, &return_list](std::shared_ptr<swganh::object::Object> child){
+				if(boost::geometry::intersects(child->GetAABB(), query_box)) {
+					return_list.insert(child);
+				}
+			});
+#endif
+		}
 	});
 
 	if(state_ == BRANCH)
@@ -174,6 +184,19 @@ std::set<std::shared_ptr<swganh::object::Object>> Node::Query(QueryBox query_box
 			{
 				auto sub_objects = node->GetContainedObjects();
 				return_list.insert(sub_objects.begin(), sub_objects.end());
+
+#ifdef SI_METHOD_TWO
+				for(auto& sub_object : sub_objects)
+				{
+					// Check for children intersects.
+					sub_object->ViewObjects(nullptr, 0, true, [=, &return_list](std::shared_ptr<swganh::object::Object> child){
+						if(boost::geometry::intersects(child->GetAABB(), query_box)) {
+							return_list.insert(child);
+						}
+					});
+				}
+#endif
+
 				continue;
 			}
 			
@@ -332,6 +355,30 @@ void Node::SvgDumpObjects(std::ofstream& file)
 		file << "<text x=\"" << position.x << "\" y=\"" << position.z * -1.0f << "\" fill=\"black\" style=\"text-anchor: middle;\" font-size=\"1px\">" << std::string(name.begin(), name.end()) << "<" << '/' << "text>\n";
 		file << "<polygon points=\"" << bounding_volume_points.str() << "\" style=\"fill-opacity:0;fill:none;stroke:red;stroke-width:0.4px\"" << '/' << "> \n";
 		file << "<polygon points=\"" << current_collision_points.str() << "\" style=\"fill-opacity:0;fill:none;stroke:blue;stroke-width:0.4px\"" << '/' << "> \n";
+
+#ifdef SI_METHOD_TWO
+		obj->ViewObjects(nullptr, 0, true, [=, &file](std::shared_ptr<swganh::object::Object> child) {
+					std::stringstream bounding_volume_points;
+					auto bounding_volume = child->GetAABB();
+					auto collision_box = child->GetWorldCollisionBox();
+
+					current_collision_points = std::stringstream();
+					boost::geometry::for_each_point(collision_box, GetCollisionBoxPoints<Point>);
+		
+					boost::geometry::box_view<swganh::object::AABB> bounding_volume_view(bounding_volume);
+					for(boost::range_iterator<boost::geometry::box_view<swganh::object::AABB>>::type it = boost::begin(bounding_volume_view); it != boost::end(bounding_volume_view); ++it) 
+					{
+						bounding_volume_points << " " << (*it).x() << "," << (*it).y() * -1.0f;
+					}
+
+					auto name = child->GetCustomName();
+					glm::vec3 position;
+					obj->GetAbsolutes(position, glm::quat());
+					file << "<text x=\"" << position.x << "\" y=\"" << position.z * -1.0f << "\" fill=\"black\" style=\"text-anchor: middle;\" font-size=\"1px\">" << std::string(name.begin(), name.end()) << "<" << '/' << "text>\n";
+					file << "<polygon points=\"" << bounding_volume_points.str() << "\" style=\"fill-opacity:0;fill:none;stroke:red;stroke-width:0.4px\"" << '/' << "> \n";
+					file << "<polygon points=\"" << current_collision_points.str() << "\" style=\"fill-opacity:0;fill:none;stroke:blue;stroke-width:0.4px\"" << '/' << "> \n";
+		});
+#endif
 	}
 
 	if(state_ == BRANCH)

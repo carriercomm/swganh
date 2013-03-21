@@ -303,7 +303,8 @@ public:
         if (find_iter != controlled_objects_.end())
         {
             controller = find_iter->second;
-            controller->SetRemoteClient(client);			
+            controller->SetRemoteClient(client);
+			object->SetController(controller);
         }
         else
         {
@@ -393,8 +394,6 @@ public:
             throw std::runtime_error("Invalid scene selected for object");
         }
 
-		object->SetCollidable(false);
-
 		// CmdStartScene
         CmdStartScene start_scene;
         start_scene.ignore_layout = 0;
@@ -410,25 +409,19 @@ public:
 				//Attach the controller
 				StartControllingObject(object, client);
 
-				object->SetCollidable(true);
-
 				if(object->GetContainer() == nullptr)
 				{
-					// Create View Box
-					std::shared_ptr<PlayerViewBox> view_box = std::make_shared<PlayerViewBox>(object);
-					view_box->SetPosition(object->GetPosition());
-					view_box->SetObjectId(object->GetObjectId() + 16);
-					view_box->SetDatabasePersisted(false);
-					view_box->SetInSnapshot(false);
-					view_box->SetTemplate("anh/view_box");
-					view_box->SetCollidable(true);
-					view_box->SetPermissions(std::make_shared<swganh::object::DefaultPermission>());
-					object->SetViewBox(view_box);
+					// Create View Box if we don't have one.
+					if(object->GetViewBox() == nullptr)
+					{
+						std::shared_ptr<PlayerViewBox> view_box = std::make_shared<PlayerViewBox>(object);
+						object->SetViewBox(view_box);
+					}
 
 					// Add to scene.
 					// note: View Box will later be attached to player.
 					scene->AddObject(object);
-					scene->AddObject(view_box);
+					scene->AddObject(object->GetViewBox());
 				}
 		}));
     }

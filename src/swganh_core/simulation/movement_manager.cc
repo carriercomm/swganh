@@ -51,7 +51,8 @@ void MovementManager::HandleDataTransformServer(
 	AABB view_box_old_bounding_volume = view_box->GetAABB();
 
 	//If the object was inside a container we need to move it out
-	/* if(object->GetContainer() != spatial_provider_)
+	/*
+	 if(object->GetContainer() != nullptr)
 	{
 		std::shared_ptr<Object> old_container = std::static_pointer_cast<Object>(object->GetContainer());
 		if(old_container->GetTemplate().compare("object/cell/shared_cell.iff") == 0) 
@@ -73,7 +74,8 @@ void MovementManager::HandleDataTransformServer(
 		}
 	}
 	else
-	{*/
+	{
+	*/
 		object->SetPosition(new_position);
 		view_box->SetPosition(object->GetPosition());
 
@@ -93,6 +95,8 @@ void MovementManager::HandleDataTransformWithParentServer(
 	const glm::vec3& new_position)
 	
 {
+	return;
+	/*
 	if(parent != nullptr)
 	{
 		//Perform the transfer if needed
@@ -115,6 +119,7 @@ void MovementManager::HandleDataTransformWithParentServer(
 	{
 		HandleDataTransformServer(object, new_position);
 	}
+	*/
 }
 
 void MovementManager::HandleDataTransform(
@@ -122,10 +127,7 @@ void MovementManager::HandleDataTransform(
     DataTransform message)
 {    
     if (!ValidateCounter_(object->GetObjectId(), message.counter))
-    {
-		LOG(error) << "Movement Counter is " << message.counter << " should be " << (counter_map_[object->GetObjectId()] + 1) << ".";
         return;
-    }
 
     counter_map_[object->GetObjectId()] = message.counter;
 
@@ -134,30 +136,33 @@ void MovementManager::HandleDataTransform(
 	AABB old_bounding_volume = object->GetAABB();
 
 	//If the object was inside a container we need to move it out
-	/* if(object->GetContainer() != spatial_provider_)
-	{
-		std::shared_ptr<Object> old_container = std::static_pointer_cast<Object>(object->GetContainer());
-		if(old_container->GetTemplate().compare("object/cell/shared_cell.iff") == 0) 
-		{
-			LOG(warning) << "Entering cell.... cells are underconstruction.";
-		} 
-		else 
-		{
-			AABB old_parent_bounding_volume = old_container->GetAABB();
-			old_container->SetOrientation(message.orientation);
-			old_container->SetPosition(message.position);
-			old_container->UpdateWorldCollisionBox();
-			old_container->UpdateAABB();
-			
-			object->UpdateWorldCollisionBox();
-			object->UpdateAABB();
+	/*if(object->GetContainer() != spatial_provider_)
+	//{
+	//	std::shared_ptr<Object> old_container = std::static_pointer_cast<Object>(object->GetContainer());
+	//	if(old_container->GetTemplate().compare("object/cell/shared_cell.iff") == 0) 
+	//	{
+			// Remove From Old Container (Update Containment)
+	//	} 
+	//	else 
+	//	{
+			// We are mounted, move the parent.
+	//		AABB old_parent_bounding_volume = old_container->GetAABB();
+	//		old_container->SetOrientation(message.orientation);
+	//		old_container->SetPosition(message.position);
+	//		view_box->SetPosition(old_container->GetPosition());
 
-			spatial_provider_->UpdateObject(old_container, old_parent_bounding_volume, old_container->GetAABB());
-			SendUpdateDataTransformMessage(old_container);
-		}
-	}
-	else
-	{*/
+	//		old_container->UpdateWorldCollisionBox();
+	//		old_container->UpdateAABB();
+
+	//		view_box->UpdateWorldCollisionBox();
+	//		view_box->UpdateAABB();
+
+	//		spatial_provider_->UpdateObject(old_container, old_parent_bounding_volume, old_container->GetAABB());
+	//		SendUpdateDataTransformMessage(old_container);
+	//	}
+	//}
+	//else
+	//{ */
 		object->SetPosition(message.position);
 		object->SetOrientation(message.orientation);
 		view_box->SetPosition(object->GetPosition());
@@ -175,14 +180,11 @@ void MovementManager::HandleDataTransformWithParent(
     DataTransformWithParent message)
 {
     return; // to implement....
-	auto container = simulation_service_->GetObjectById(message.cell_id);
+	/*auto container = simulation_service_->GetObjectById(message.cell_id);
 	if(container != nullptr)
 	{
 		if (!ValidateCounter_(object->GetObjectId(), message.counter))
-		{
-			LOG(error) << "Movement Counter is " << message.counter << " should be " << (counter_map_[object->GetObjectId()] + 1) << ".";
 			return;
-		}
 
 		counter_map_[object->GetObjectId()] = message.counter;
 
@@ -207,7 +209,7 @@ void MovementManager::HandleDataTransformWithParent(
 	else
 	{
 		LOG(error) << "Cell ID: " << message.cell_id << " not found.";
-	}
+	}*/
 }
 
 void MovementManager::SendDataTransformMessage(const shared_ptr<Object>& object, uint32_t unknown)
