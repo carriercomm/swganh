@@ -673,6 +673,7 @@ public:
 	{
 		collision_length_ = length;
 		collision_height_ = height;
+		BuildSpatialProfile(); // Build/Rebuild
 	}
 
 	void SetCollidable(bool collidable) { collidable_ = collidable; }

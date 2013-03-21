@@ -318,7 +318,7 @@ shared_ptr<Object> ObjectManager::CreateObjectFromTemplate(const string& templat
 		created_object->SetEventDispatcher(kernel_->GetEventDispatcher());
 		created_object->SetDatabasePersisted(is_persisted);
 		LoadSlotsForObject(created_object);
-		//LoadCollisionInfoForObject(created_object);
+		LoadCollisionInfoForObject(created_object);
 
 		//Set the ID based on the inputs
 		if(is_persisted)
@@ -419,12 +419,19 @@ void ObjectManager::LoadCollisionInfoForObject(std::shared_ptr<Object> obj)
 		auto obj_visitor = kernel_->GetResourceManager()->GetResourceByName<ObjectVisitor>(obj->GetTemplate());
 		obj_visitor->load_aggregate_data(kernel_->GetResourceManager());
 
+		// Set collision box parameters if they exist.
+		// If they don't, give our object some default volume.
+		// SetCollisionBoxSize will also build the object's spatial profie.
 		if(obj_visitor->has_attribute("collisionLength") && obj_visitor->has_attribute("collisionHeight"))
 		{
 			obj->SetCollisionBoxSize(obj_visitor->attribute<float>("collisionLength") / 2.0f, obj_visitor->attribute<float>("collisionLength") / 2.0f);
 			obj->SetCollidable(true);
 		}
-			obj->SetCollidable(false);
+		else
+		{
+			obj->SetCollisionBoxSize(0.0f, 0.0f); // This gives the object default volume.
+			obj->SetCollidable(false); // Turn off collisions.
+		}
 }
 
 void ObjectManager::LoadSlotsForObject(std::shared_ptr<Object> object)

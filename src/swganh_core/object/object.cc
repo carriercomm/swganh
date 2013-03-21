@@ -43,9 +43,9 @@ Object::Object()
 	, arrangement_id_(-2)
 	, database_persisted_(true)
 	, in_snapshot_(false)
-	, collision_height_(1.0f)
-	, collision_length_(1.0f)
-	, collidable_(true)
+	, collision_height_(0.0f)
+	, collision_length_(0.0f)
+	, collidable_(false)
 	, attributes_template_id(-1)
 	, event_dispatcher_(nullptr)
 	, controller_(nullptr)
@@ -279,9 +279,6 @@ int32_t Object::__InternalInsert(std::shared_ptr<Object> object, glm::vec3 new_p
 
 	//Time to update the position to the new coordinates/update AABB
 	object->SetPosition(new_position);
-	// TEMP
-	object->BuildSpatialProfile();
-	// Temp
 	object->__InternalUpdateWorldCollisionBox();
 	object->UpdateAABB();
 
