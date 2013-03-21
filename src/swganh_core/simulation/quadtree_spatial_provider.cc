@@ -38,35 +38,22 @@ void QuadtreeSpatialProvider::AddObject(shared_ptr<Object> object, int32_t arran
 	object->SetArrangementId(arrangement_id);
 	object->SetSceneId(scene_id_);
 
-	#ifdef SI_METHOD_ONE
-		// Add our children.
-		object->ViewObjects(nullptr, 0, true, [=](std::shared_ptr<swganh::object::Object> child) {
-			child->BuildSpatialProfile();
-			child->UpdateWorldCollisionBox();
-			child->UpdateAABB();
-			root_node_.InsertObject(child);
-			child->SetSceneId(scene_id_);
-		});
+	// Add our children.
+	object->ViewObjects(nullptr, 0, true, [=](std::shared_ptr<swganh::object::Object> child) {
+		child->BuildSpatialProfile();
+		child->UpdateWorldCollisionBox();
+		child->UpdateAABB();
+		child->SetSceneId(scene_id_);
+		#ifdef SI_METHOD_ONE
+		root_node_.InsertObject(child);
+		#endif
+	});
 
-		CheckCollisions(object);
+	CheckCollisions(object);
 
-		object->ViewObjects(nullptr, 0, true, [=](std::shared_ptr<swganh::object::Object> child) {
-			CheckCollisions(child);
-		});
-	#else
-		object->ViewObjects(nullptr, 0, true, [=](std::shared_ptr<swganh::object::Object> child) {
-			child->BuildSpatialProfile();
-			child->UpdateWorldCollisionBox();
-			child->UpdateAABB();
-			child->SetSceneId(scene_id_);
-		});
-
-		CheckCollisions(object);
-
-		object->ViewObjects(nullptr, 0, true, [=](std::shared_ptr<swganh::object::Object> child) {
-			CheckCollisions(child);
-		});
-	#endif
+	object->ViewObjects(nullptr, 0, true, [=](std::shared_ptr<swganh::object::Object> child) {
+		CheckCollisions(child);
+	});
 
 	std::chrono::high_resolution_clock::time_point stop_time = std::chrono::high_resolution_clock::now();
 
@@ -123,43 +110,26 @@ void QuadtreeSpatialProvider::UpdateObject(shared_ptr<Object> obj, const swganh:
 	std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
 	root_node_.UpdateObject(obj, old_bounding_volume, new_bounding_volume);
 	
-	#ifdef SI_METHOD_ONE
-		// Update children
-		obj->ViewObjects(nullptr, 0, true, [=](std::shared_ptr<swganh::object::Object> child) {
-			auto child_old_aabb = child->GetAABB();
-			child->UpdateWorldCollisionBox();
-			child->UpdateAABB();
-			root_node_.UpdateObject(child, child_old_aabb, child->GetAABB());
-		});
+	// Update children
+	obj->ViewObjects(nullptr, 0, true, [=](std::shared_ptr<swganh::object::Object> child) {
+		auto child_old_aabb = child->GetAABB();
+		child->UpdateWorldCollisionBox();
+		child->UpdateAABB();
+		#ifdef SI_METHOD_ONE
+		root_node_.UpdateObject(child, child_old_aabb, child->GetAABB());
+		#endif
+	});
 
-		if(view_box != nullptr) {
-			root_node_.UpdateObject(view_box, view_box_old_bounding_volume, view_box_new_bounding_volume);
-			CheckCollisions(view_box);
-		}
+	if(view_box != nullptr) {
+		root_node_.UpdateObject(view_box, view_box_old_bounding_volume, view_box_new_bounding_volume);
+		CheckCollisions(view_box);
+	}
 
-		CheckCollisions(obj);
+	CheckCollisions(obj);
 
-		obj->ViewObjects(nullptr, 0, true, [=](std::shared_ptr<swganh::object::Object> child) {
-			CheckCollisions(child);
-		});
-	#else
-		// Update children
-		obj->ViewObjects(nullptr, 0, true, [=](std::shared_ptr<swganh::object::Object> child) {
-			child->UpdateWorldCollisionBox();
-			child->UpdateAABB();
-		});
-
-		if(view_box != nullptr) {
-			root_node_.UpdateObject(view_box, view_box_old_bounding_volume, view_box_new_bounding_volume);
-			CheckCollisions(view_box);
-		}
-
-		CheckCollisions(obj);
-
-		obj->ViewObjects(nullptr, 0, true, [=](std::shared_ptr<swganh::object::Object> child) {
-			CheckCollisions(child);
-		});
-	#endif
+	obj->ViewObjects(nullptr, 0, true, [=](std::shared_ptr<swganh::object::Object> child) {
+		CheckCollisions(child);
+	});
 
 	auto stop_time = std::chrono::high_resolution_clock::now();
 
