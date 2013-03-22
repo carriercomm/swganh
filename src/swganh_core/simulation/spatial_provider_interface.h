@@ -13,6 +13,8 @@
 namespace swganh {
 namespace simulation {
 
+class WorldContainer;
+
 /**
  * Provides Spatial Indexing functionality.
  */
@@ -26,7 +28,7 @@ public:
 	virtual swganh::object::Object::ObjectPtrSet Query(boost::geometry::model::polygon<swganh::object::Point> query_box) = 0;
 	virtual swganh::object::Object::ObjectPtrSet Query(glm::vec3 position = glm::vec3(), float radius = 0.0f) = 0;
 	virtual std::set<std::pair<float, std::shared_ptr<swganh::object::Object>>> FindObjectsInRangeByTag(const std::shared_ptr<swganh::object::Object> requester, const std::string& tag, float range=-1)=0;
-
+	virtual std::shared_ptr<WorldContainer>& GetWorldContainer() = 0;
 };
 
 }} // namespace swganh::simulation

@@ -8,6 +8,7 @@
 #include "swganh_core/object/object.h"
 #include "swganh_core/object/permissions/world_permission.h"
 #include "swganh_core/simulation/player_view_box.h"
+#include "swganh_core/simulation/world_container.h"
 
 using std::shared_ptr;
 
@@ -20,7 +21,8 @@ static int VIEWING_RANGE = 128;
 
 QuadtreeSpatialProvider::QuadtreeSpatialProvider()
 	: root_node_(ROOT, Region(quadtree::Point(-8300.0f, -8300.0f), 
-	quadtree::Point(8300.0f, 8300.0f)), 0, 9, nullptr)
+	quadtree::Point(8300.0f, 8300.0f)), 0, 9, nullptr),
+	world_container_(std::make_shared<WorldContainer>(this))
 {
 }
 
@@ -37,12 +39,10 @@ void QuadtreeSpatialProvider::AddObject(shared_ptr<Object> object, int32_t arran
 	root_node_.InsertObject(object);
 	object->SetArrangementId(arrangement_id);
 	object->SetSceneId(scene_id_);
+	object->SetContainer(world_container_);
 
 	// Add our children.
 	object->ViewObjects(nullptr, 0, true, [=](std::shared_ptr<swganh::object::Object> child) {
-		child->BuildSpatialProfile();
-		child->UpdateWorldCollisionBox();
-		child->UpdateAABB();
 		child->SetSceneId(scene_id_);
 		#ifdef SI_METHOD_ONE
 		root_node_.InsertObject(child);
@@ -66,22 +66,23 @@ void QuadtreeSpatialProvider::RemoveObject(shared_ptr<Object> object)
 	boost::upgrade_lock<boost::shared_mutex> uplock(lock_);
 	std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
 
-	#ifdef SI_METHOD_ONE
-		// Remove our children.
-		object->ViewObjects(nullptr, 0, true, [=](std::shared_ptr<swganh::object::Object> child) {
-			auto collided_objects = child->GetCollidedObjects();
-			root_node_.RemoveObject(child);
-	
-			for(auto& collided_object : collided_objects)
-			{
-				object->OnCollisionLeave(collided_object);
-				collided_object->OnCollisionLeave(object);
+	// Remove our children.
+	object->ViewObjects(nullptr, 0, true, [=](std::shared_ptr<swganh::object::Object> child) {
+		auto collided_objects = child->GetCollidedObjects();
 
-				object->RemoveCollidedObject(collided_object);
-				collided_object->RemoveCollidedObject(object);
-			}
-		});
-	#endif
+		#ifdef SI_METHOD_ONE
+		root_node_.RemoveObject(child);
+		#endif
+	
+		for(auto& collided_object : collided_objects)
+		{
+			object->OnCollisionLeave(collided_object);
+			collided_object->OnCollisionLeave(object);
+
+			object->RemoveCollidedObject(collided_object);
+			collided_object->RemoveCollidedObject(object);
+		}
+	});
 
 	auto collided_objects = object->GetCollidedObjects(); // Copy
 	root_node_.RemoveObject(object);

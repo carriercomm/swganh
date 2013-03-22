@@ -429,7 +429,7 @@ void ObjectManager::LoadCollisionInfoForObject(std::shared_ptr<Object> obj)
 		}
 		else
 		{
-			obj->SetCollisionBoxSize(0.0f, 0.0f); // This gives the object default volume.
+			obj->SetCollisionBoxSize(0.0f, 0.0f); // This gives the object default volume (even if it's 0).
 			obj->SetCollidable(false); // Turn off collisions.
 		}
 }

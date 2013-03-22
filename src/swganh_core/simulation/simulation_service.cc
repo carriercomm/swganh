@@ -409,20 +409,17 @@ public:
 				//Attach the controller
 				StartControllingObject(object, client);
 
-				if(object->GetContainer() == nullptr)
+				// Create View Box if we don't have one.
+				if(object->GetViewBox() == nullptr)
 				{
-					// Create View Box if we don't have one.
-					if(object->GetViewBox() == nullptr)
-					{
-						std::shared_ptr<PlayerViewBox> view_box = std::make_shared<PlayerViewBox>(object);
-						object->SetViewBox(view_box);
-					}
-
-					// Add to scene.
-					// note: View Box will later be attached to player.
-					scene->AddObject(object);
-					scene->AddObject(object->GetViewBox());
+					std::shared_ptr<PlayerViewBox> view_box = std::make_shared<PlayerViewBox>(object);
+					object->SetViewBox(view_box);
 				}
+
+				// Add to scene.
+				// note: View Box will later be attached to player.
+				scene->AddObject(object);
+				scene->AddObject(object->GetViewBox());
 		}));
     }
 

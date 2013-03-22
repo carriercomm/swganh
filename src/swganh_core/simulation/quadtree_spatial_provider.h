@@ -9,6 +9,8 @@
 namespace swganh {
 namespace simulation {
 
+class WorldContainer;
+
 class QuadtreeSpatialProvider 
 	: public swganh::simulation::SpatialProviderInterface
 {
@@ -26,6 +28,7 @@ public:
 
 	void SetSceneName(std::string name) { scene_name_ = name; }
 	void SetSceneId(uint32_t id) { scene_id_ = id; }
+	std::shared_ptr<WorldContainer>& GetWorldContainer() { return world_container_; }
 
 	//Object Management
 	virtual void AddObject(std::shared_ptr<swganh::object::Object> newObject, int32_t arrangement_id=-2);
@@ -42,6 +45,7 @@ private:
 
 	std::string scene_name_;
 	uint32_t scene_id_;
+	std::shared_ptr<WorldContainer> world_container_;
 
 	boost::shared_mutex lock_;
 
