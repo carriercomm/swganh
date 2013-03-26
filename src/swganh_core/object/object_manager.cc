@@ -416,22 +416,22 @@ std::shared_ptr<swganh::tre::SlotDefinitionVisitor>  ObjectManager::GetSlotDefin
 
 void ObjectManager::LoadCollisionInfoForObject(std::shared_ptr<Object> obj)
 {
-		auto obj_visitor = kernel_->GetResourceManager()->GetResourceByName<ObjectVisitor>(obj->GetTemplate());
-		obj_visitor->load_aggregate_data(kernel_->GetResourceManager());
+	auto obj_visitor = kernel_->GetResourceManager()->GetResourceByName<ObjectVisitor>(obj->GetTemplate());
+	obj_visitor->load_aggregate_data(kernel_->GetResourceManager());
 
-		// Set collision box parameters if they exist.
-		// If they don't, give our object some default volume.
-		// SetCollisionBoxSize will also build the object's spatial profie.
-		if(obj_visitor->has_attribute("collisionLength") && obj_visitor->has_attribute("collisionHeight"))
-		{
-			obj->SetCollisionBoxSize(obj_visitor->attribute<float>("collisionLength") / 2.0f, obj_visitor->attribute<float>("collisionLength") / 2.0f);
-			obj->SetCollidable(true);
-		}
-		else
-		{
-			obj->SetCollisionBoxSize(0.0f, 0.0f); // This gives the object default volume (even if it's 0).
-			obj->SetCollidable(false); // Turn off collisions.
-		}
+	// Set collision box parameters if they exist.
+	// If they don't, give our object some default volume.
+	// SetCollisionBoxSize will also build the object's spatial profie.
+	if(obj_visitor->has_attribute("collisionLength") && obj_visitor->has_attribute("collisionHeight"))
+	{
+		obj->SetCollisionBoxSize(obj_visitor->attribute<float>("collisionLength") / 2.0f, obj_visitor->attribute<float>("collisionLength") / 2.0f);
+		obj->SetCollidable(true);
+	}
+	else
+	{
+		obj->SetCollisionBoxSize(0.0f, 0.0f); // This is so the Spatial Profile is properly built.
+		obj->SetCollidable(false); // Turn off collisions.
+	}
 }
 
 void ObjectManager::LoadSlotsForObject(std::shared_ptr<Object> object)

@@ -61,18 +61,17 @@ void MovementManager::HandleDataTransformServer(
 		} 
 		else
 		{
-			std::cout << "Mounted...." << std::endl;
 			// We are mounted move our parent.
 			AABB old_parent_bounding_volume = old_container->GetAABB();
 			old_container->SetPosition(new_position);
 			old_container->UpdateWorldCollisionBox();
 			old_container->UpdateAABB();
 			view_box->SetPosition(old_container->GetPosition());
+			view_box->UpdateWorldCollisionBox();
+			view_box->UpdateAABB();
 
 			object->UpdateWorldCollisionBox();
 			object->UpdateAABB();
-			view_box->UpdateWorldCollisionBox();
-			view_box->UpdateAABB();
 			
 			spatial_provider_->UpdateObject(old_container, old_parent_bounding_volume, old_container->GetAABB(), view_box, view_box_old_bounding_volume, view_box->GetAABB());
 			SendDataTransformMessage(old_container);
@@ -101,6 +100,10 @@ void MovementManager::HandleDataTransformWithParentServer(
 {
 	if((std::static_pointer_cast<ContainerInterface> (parent)) != spatial_provider_->GetWorldContainer())
 	{
+		auto& view_box = object->GetViewBox();
+		AABB view_box_old_bounding_volume = view_box->GetAABB();
+		AABB old_bounding_volume = object->GetAABB();
+
 		//Perform the transfer if needed
 		if(object->GetContainer() != parent)
 		{
@@ -109,8 +112,20 @@ void MovementManager::HandleDataTransformWithParentServer(
 		else
 		{
 			object->SetPosition(new_position);
+
+			// Get Absolutes for ViewBox
+			auto abs_position = glm::vec3();
+			auto abs_orientation = glm::quat();
+			object->GetAbsolutes(abs_position, abs_orientation);
+
+			view_box->SetPosition(abs_position);
+
 			object->UpdateWorldCollisionBox();
 			object->UpdateAABB();
+			view_box->UpdateWorldCollisionBox();
+			view_box->UpdateAABB();
+
+			spatial_provider_->UpdateObject(object, old_bounding_volume, object->GetAABB(), view_box, view_box_old_bounding_volume, view_box->GetAABB());
 		}
 		
 		//Send the update transform
@@ -146,21 +161,19 @@ void MovementManager::HandleDataTransform(
 		} 
 		else 
 		{
-			std::cout << "Mounted...." << std::endl;
 			// We are mounted move our parent.
 			AABB old_parent_bounding_volume = old_container->GetAABB();
 			old_container->SetPosition(message.position);
+			old_container->SetOrientation(message.orientation);
+			view_box->SetPosition(old_container->GetPosition());
+			
 			old_container->UpdateWorldCollisionBox();
 			old_container->UpdateAABB();
-			view_box->SetPosition(old_container->GetPosition());
-
-			object->UpdateWorldCollisionBox();
-			object->UpdateAABB();
 			view_box->UpdateWorldCollisionBox();
 			view_box->UpdateAABB();
 			
 			spatial_provider_->UpdateObject(old_container, old_parent_bounding_volume, old_container->GetAABB(), view_box, view_box_old_bounding_volume, view_box->GetAABB());
-			SendDataTransformMessage(old_container);
+			SendUpdateDataTransformMessage(old_container);
 		}
 	}
 	else
@@ -189,6 +202,10 @@ void MovementManager::HandleDataTransformWithParent(
 
 		counter_map_[object->GetObjectId()] = message.counter;
 
+		auto& view_box = object->GetViewBox();
+		AABB view_box_old_bounding_volume = view_box->GetAABB();
+		AABB old_bounding_volume = object->GetAABB();
+
 		//Set the new position and orientation
 		object->SetOrientation(message.orientation);
     
@@ -200,8 +217,20 @@ void MovementManager::HandleDataTransformWithParent(
 		else
 		{
 			object->SetPosition(message.position);
+
+			// Get Absolutes for ViewBox
+			auto abs_position = glm::vec3();
+			auto abs_orientation = glm::quat();
+			object->GetAbsolutes(abs_position, abs_orientation);
+
+			view_box->SetPosition(abs_position);
+
 			object->UpdateWorldCollisionBox();
 			object->UpdateAABB();
+			view_box->UpdateWorldCollisionBox();
+			view_box->UpdateAABB();
+
+			spatial_provider_->UpdateObject(object, old_bounding_volume, object->GetAABB(), view_box, view_box_old_bounding_volume, view_box->GetAABB());
 		}
 
 		//Send the update transform
@@ -285,8 +314,7 @@ void MovementManager::RegisterEvents(swganh::EventDispatcher* event_dispatcher)
 		"Object::SetPosition",
 		[this] (shared_ptr<swganh::EventInterface> incoming_event)
 	{
-		const auto& object = static_pointer_cast<swganh::ValueEvent<shared_ptr<Object>>>(incoming_event)->Get();
-
+		auto event = static_pointer_cast<swganh::object::SetPositionEvent>(incoming_event);
 	});
 }
 

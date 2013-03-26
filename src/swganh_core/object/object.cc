@@ -12,7 +12,6 @@
 #include "swganh/crc.h"
 #include "swganh/observer/observer_interface.h"
 
-
 #include "swganh_core/messages/scene_create_object_by_crc.h"
 #include "swganh_core/messages/update_containment_message.h"
 #include "swganh_core/messages/scene_destroy_object.h"
@@ -23,6 +22,7 @@
 
 #include "swganh_core/object/permissions/container_permissions_interface.h"
 #include "swganh_core/simulation/player_view_box.h"
+#include "swganh_core/simulation/world_container.h"
 
 using namespace swganh::observer;
 using namespace std;
@@ -102,6 +102,17 @@ void Object::AddObject(std::shared_ptr<Object> requester, std::shared_ptr<Object
 			boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(lock);
 			arrangement_id = __InternalInsert(obj, obj->GetPosition(), arrangement_id);
 		}
+
+		// SI hooks into this to force a collisions update.
+		//if(event_dispatcher_)
+		//	event_dispatcher_->Dispatch(make_shared<ValueEvent<std::shared_ptr<Object>>>("Object::AddObject", obj));
+
+		auto controllersInView = GetControllersInView();
+		for(auto& observer : controllersInView) {
+			obj->Subscribe(observer);
+			obj->SendCreateByCrc(observer);
+			obj->CreateBaselines(observer);
+		}
 	}
 }
 
@@ -120,6 +131,16 @@ void Object::RemoveObject(std::shared_ptr<Object> requester, std::shared_ptr<Obj
 			}
 			oldObject->SetContainer(nullptr);
 		}
+
+		// SI hooks into this to force a collisions update.
+		//if(event_dispatcher_)
+		//	event_dispatcher_->Dispatch(make_shared<ValueEvent<std::shared_ptr<Object>>>("Object::RemoveObject", oldObject));
+
+		auto controllersInView = GetControllersInView();
+		for(auto& observer : controllersInView) {
+			oldObject->Unsubscribe(observer);
+			oldObject->SendDestroy(observer);
+		}
 	}
 }
 
@@ -134,55 +155,20 @@ void Object::TransferObject(std::shared_ptr<Object> requester, std::shared_ptr<O
 		{
 			boost::upgrade_to_unique_lock<boost::shared_mutex> unique(uplock);
 
-			//Perform the transfer
-			//for(auto& slot : slot_descriptor_)
-			//{
-			//	slot.second->remove_object(object);
-			//}
+			//Remove Object from Datastructure
+			for(auto& slot : slot_descriptor_)
+			{
+				slot.second->remove_object(object);
+			}
 
 			arrangement_id = newContainer->__InternalInsert(object, new_position, arrangement_id);
 		}
 
-		//Split into 3 groups -- only ours, only new, and both ours and new
-		std::set<std::shared_ptr<Object>> oldObservers, newObservers, bothObservers;
-
-		object->__InternalViewAwareObjects([&] (std::shared_ptr<Object> observer) {
-			oldObservers.insert(observer);
-		});
-	
-		newContainer->__InternalViewAwareObjects([&] (std::shared_ptr<Object> observer) 
-		{
-			if(newContainer->GetPermissions()->canView(newContainer, observer))
-			{
-				auto itr = oldObservers.find(observer);
-				if(itr != oldObservers.end())
-				{
-					oldObservers.erase(itr);
-					bothObservers.insert(observer);
-				} 
-				else 
-				{
-					newObservers.insert(observer);
-				}
-			}
-		}, requester);
-
-		/**
-		//Send Creates to only new
-		for(auto& observer : newObservers) {
-			object->__InternalAddAwareObject(observer, true);
-		}
-
 		//Send updates to both
-		for(auto& observer : bothObservers) {
-			object->SendUpdateContainmentMessage(observer->GetController());
+		auto controllersInView = GetControllersInView();
+		for(auto& observer : controllersInView) {
+			object->SendUpdateContainmentMessage(observer);
 		}
-
-		//Send destroys to only ours
-		for(auto& observer : oldObservers) {
-			object->__InternalRemoveAwareObject(observer, true);
-		}
-		*/
 	}
 }
 
@@ -315,46 +301,12 @@ void Object::__InternalTransfer(std::shared_ptr<Object> requester, std::shared_p
 			{
 				arrangement_id = newContainer->__InternalInsert(object, object->GetPosition(), arrangement_id);
 
-			//Split into 3 groups -- only ours, only new, and both ours and new
-			std::set<std::shared_ptr<Object>> oldObservers, newObservers, bothObservers;
-
-			object->__InternalViewAwareObjects([&] (std::shared_ptr<Object> observer) {
-				oldObservers.insert(observer);
-			});
-	
-			newContainer->__InternalViewAwareObjects([&] (std::shared_ptr<Object> observer) 
-			{
-				if(newContainer->GetPermissions()->canView(newContainer, observer))
-				{
-					auto itr = oldObservers.find(observer);
-					if(itr != oldObservers.end())
-					{
-						oldObservers.erase(itr);
-						bothObservers.insert(observer);
-					} 
-					else 
-					{
-						newObservers.insert(observer);
-					}
+				/**
+				//Send update containment message to controllers in view.
+				for(auto& observer : bothObservers) {
+					object->SendUpdateContainmentMessage(observer->GetController());
 				}
-			}, requester);
-
-			/**
-			//Send Creates to only new
-			for(auto& observer : newObservers) {
-				object->__InternalAddAwareObject(observer, true);
-			}
-
-			//Send updates to both
-			for(auto& observer : bothObservers) {
-				object->SendUpdateContainmentMessage(observer->GetController());
-			}
-
-			//Send destroys to only ours
-			for(auto& observer : oldObservers) {
-				object->__InternalRemoveAwareObject(observer, true);
-			}
-			*/
+				*/
 		}
 	} catch(const std::exception& e){
 		LOG(error) << "Could not transfer object " << object->GetObjectId() << " to container :" << GetObjectId() << " with error " << e.what();
@@ -376,7 +328,7 @@ void Object::__InternalGetAbsolutes(glm::vec3& pos, glm::quat& rot)
 	auto parentContainer = GetContainer();
 	if(parentContainer)
 	{
-		 parentContainer->__InternalGetAbsolutes(pos, rot);
+		parentContainer->__InternalGetAbsolutes(pos, rot);
 	}
 	else
 	{
@@ -524,10 +476,21 @@ void Object::AddBaselineToCache(swganh::messages::BaselinesMessage* baseline)
 
 void Object::SetPosition(glm::vec3 position)
 {
+	//glm::vec3 old_position;
+	//AABB old_aabb;
+
     {
 	    boost::lock_guard<boost::mutex> lock(object_mutex_);
-        position_ = position;
+		//old_position = position;
+		//old_aabb = aabb_;
+		position_ = position;
 	}
+
+	//__InternalUpdateWorldCollisionBox();
+	//UpdateAABB();
+
+	//GetEventDispatcher()->Dispatch(make_shared<SetPositionEvent>("Object::SetPosition", shared_from_this(), old_position, old_aabb, position, aabb_));
+
 	DISPATCH(Object, Position);
 }
 
@@ -771,7 +734,7 @@ void Object::SendUpdateContainmentMessage(std::shared_ptr<swganh::observer::Obse
 	UpdateContainmentMessage containment_message;
 	containment_message.container_id = container_id;
 	containment_message.object_id = GetObjectId();
-	containment_message.containment_type = 4;
+	containment_message.containment_type = arrangement_id_;
 	observer->Notify(&containment_message);
 }
 
@@ -1114,4 +1077,30 @@ void Object::BuildCollisionBox()
 void Object::UpdateAABB() 
 { 
 	boost::geometry::envelope(world_collision_box_, aabb_);
+}
+
+const Object::ObjectPtrSet& Object::GetObjectsInView()
+{
+	auto objs = ObjectPtrSet();
+	if(view_box_ == nullptr)
+		return std::move(objs);
+	else
+		return view_box_->GetCollidedObjects();
+}
+
+Object::ObserverContainer Object::GetControllersInView()
+{		
+	/**
+	auto controllers = std::vector<std::shared_ptr<swganh::observer::ObserverInterface>>();
+	if(view_box_ == nullptr)
+		return controllers;
+
+	auto& objects_in_view = view_box_->GetCollidedObjects();
+	for(auto& object : objects_in_view)
+	{
+		if(object->HasController())
+			controllers.push_back(object->GetController());
+	}
+	*/
+	return observers_;
 }

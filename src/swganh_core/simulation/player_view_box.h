@@ -14,6 +14,7 @@ namespace simulation {
 		~PlayerViewBox();
 
 		void OnCollisionEnter(std::shared_ptr<swganh::object::Object> collider);
+		void OnCollisionStay(std::shared_ptr<swganh::object::Object> collider);
 		void OnCollisionLeave(std::shared_ptr<swganh::object::Object> collider);
 
 	private:

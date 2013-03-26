@@ -134,24 +134,22 @@ public:
 	{
 	  bool operator()( const std::shared_ptr<Object> & a, const std::shared_ptr<Object> & b )
 		{
-			if(a->GetContainer() != nullptr)
-			{
-				if(a->GetContainer()->GetObjectId() == b->GetObjectId())
-					return false;
-			}
-			else if(b->GetContainer() != nullptr)
-			{
-				if(b->GetContainer()->GetObjectId() == a->GetObjectId())
-					return true;
-			}
+			auto a_obj_id = a->GetObjectId();
+			auto b_obj_id = b->GetObjectId();
 
-			return a->GetObjectId() < b->GetObjectId(); 
+			if(a->GetContainer() != nullptr)
+				a_obj_id += a->GetContainer()->GetObjectId();
+			if(b->GetContainer() != nullptr)
+				b_obj_id += b->GetContainer()->GetObjectId();
+
+			return a_obj_id < b_obj_id; 
 		}
 	};
 
 	typedef std::set<std::shared_ptr<Object>, ObjectPtrOps> ObjectPtrSet;
 
 	typedef std::shared_ptr<ContainerPermissionsInterface> PermissionsObject;
+	typedef std::set<std::shared_ptr<swganh::observer::ObserverInterface>> ObserverContainer;
 
 	Object();
     virtual ~Object();
@@ -630,6 +628,9 @@ public:
 	void SetViewBox(std::shared_ptr<simulation::PlayerViewBox> view_box) { view_box_ = view_box; }
 	std::shared_ptr<simulation::PlayerViewBox> GetViewBox() { return view_box_; }
 
+	const ObjectPtrSet& GetObjectsInView();
+	ObserverContainer GetControllersInView();
+
 	//
 	// Spatial/Collision
 	//
@@ -647,6 +648,16 @@ public:
 	const ObjectPtrSet& GetCollidedObjects(void) const { return collided_objects_; }
 	void AddCollidedObject(std::shared_ptr<Object> obj)
 	{
+		/*
+		auto i = std::find_if(collided_objects_.begin(), collided_objects_.end(), [=](const std::shared_ptr<Object>& collided_obj)
+			{
+				return obj->GetObjectId() == collided_obj->GetObjectId();
+			});
+
+		if(i == collided_objects_.end())
+			collided_objects_.push_back(obj);
+			*/
+		
 		bool found = false;
 
 		std::for_each(collided_objects_.begin(), collided_objects_.end(), [=, &found](std::shared_ptr<Object> other) {
@@ -656,11 +667,18 @@ public:
 
 		if(found == false)
 			collided_objects_.insert(obj);
+			
+
 	}
 
 	void RemoveCollidedObject(std::shared_ptr<Object> obj)
 	{
 		auto i = collided_objects_.find(obj);
+		/**auto i = std::find_if(collided_objects_.begin(), collided_objects_.end(), [=](const std::shared_ptr<Object>& collided_obj)
+			{
+				return obj->GetObjectId() == collided_obj->GetObjectId();
+			});
+		*/
 		if(i != collided_objects_.end())
 			collided_objects_.erase(i);
 	}
@@ -723,7 +741,10 @@ protected:
 			}
 			else
 			{
-				boost::geometry::append(local_collision_box_, Point(1.0f, 1.0f));
+				boost::geometry::append(local_collision_box_, Point((-1.0f * collision_length_) / 2, (-1.0f * collision_length_) / 2));
+				boost::geometry::append(local_collision_box_, Point((-1.0f * collision_length_) / 2, collision_length_ / 2));
+				boost::geometry::append(local_collision_box_, Point(collision_length_ / 2, collision_length_ / 2));
+				boost::geometry::append(local_collision_box_, Point(collision_length_ / 2, (-1.0f * collision_length_) / 2));
 			}
 	}
 
@@ -732,7 +753,6 @@ protected:
 	swganh::EventDispatcher* event_dispatcher_;
 
 private:
-    typedef std::set<std::shared_ptr<swganh::observer::ObserverInterface>> ObserverContainer;
 	typedef std::set<std::shared_ptr<swganh::object::Object>> AwareObjectContainer;
 
 	AttributesMap attributes_map_;

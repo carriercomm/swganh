@@ -19,7 +19,10 @@ PlayerViewBox::PlayerViewBox(std::shared_ptr<Object> player)
 	SetCollidable(true);
 	SetCollisionBoxSize((float)VIEWING_RANGE * 2.0f,(float) VIEWING_RANGE * 2.0f);
 	SetTemplate("server/anh_view_box");
-	SetPosition(player->GetPosition());
+	auto abs_position = glm::vec3();
+	auto abs_orientation = glm::quat();
+	player->GetAbsolutes(abs_position, abs_orientation);
+	SetPosition(abs_position);
 	SetObjectId(player->GetObjectId() + 16);
 	SetPermissions(std::make_shared<swganh::object::DefaultPermission>());
 }
@@ -31,56 +34,84 @@ PlayerViewBox::~PlayerViewBox()
 
 void PlayerViewBox::OnCollisionEnter(std::shared_ptr<Object> collider)
 {
+	// We only process top level objects, contained objects will
+	// be spawned along with top level objects to ensure correct
+	// ordering.
+	if(collider->GetContainer() != nullptr)
+		if(collider->GetContainer()->GetObjectId() != 0)
+			return;
+
 	// Add collided object to view.
 	auto& controller = player_->GetController();
 	if(controller != nullptr)
 	{
 		if(collider->IsInSnapshot() == false)
 		{
-			//std::cout << "Creating [ " << collider->GetTemplate() << ":" << collider->GetObjectId(); 
-			//if(collider->GetContainer() != nullptr)
-			//	std::cout << ":" << collider->GetContainer()->GetObjectId();
-			//std::cout << "] for ";
-			//std::wcout << player_->GetCustomName() << std::endl;
+			std::cout << "Creating [ " << collider->GetTemplate() << ":" << collider->GetObjectId(); 
+			if(collider->GetContainer() != nullptr)
+				std::cout << ":" << collider->GetContainer()->GetObjectId();
+			std::cout << "] for ";
+			std::wcout << player_->GetCustomName() << std::endl;
 			collider->Subscribe(controller);
 			collider->SendCreateByCrc(controller);
 			collider->CreateBaselines(controller);
 		}
 
-		/**collider->ViewObjects(nullptr, 0, true, [=](std::shared_ptr<swganh::object::Object> child) {
-			if(collider->IsInSnapshot() == false)
-			{
-				child->Subscribe(controller);
-				child->SendCreateByCrc(controller);
-				child->CreateBaselines(controller);
-			}
-		});*/
+		collider->ViewObjects(nullptr, 0, true, [=](const std::shared_ptr<Object>& child) {
+				if(child->IsInSnapshot() == false)
+				{
+					std::cout << "Creating [ " << child->GetTemplate() << ":" << child->GetObjectId(); 
+					if(child->GetContainer() != nullptr)
+						std::cout << ":" << child->GetContainer()->GetObjectId();
+					std::cout << "] for ";
+					std::wcout << player_->GetCustomName() << std::endl;
+					child->Subscribe(controller);
+					child->SendCreateByCrc(controller);
+					child->CreateBaselines(controller);
+				}
+		});
 	}
+}
+
+void PlayerViewBox::OnCollisionStay(std::shared_ptr<Object> collider)
+{
 }
 
 void PlayerViewBox::OnCollisionLeave(std::shared_ptr<Object> collider)
 {
+	// We only process top level objects, contained objects will
+	// be spawned along with top level objects to ensure correct
+	// ordering.
+	if(collider->GetContainer() != nullptr)
+		if(collider->GetContainer()->GetObjectId() != 0)
+			return;
+
 	// Remove collided object from view.
 	auto& controller = player_->GetController();
 	if(controller != nullptr)
 	{
 		if(collider->IsInSnapshot() == false)
 		{
-			//std::cout << "Destroying [ " << collider->GetTemplate() << ":" << collider->GetObjectId(); 
-			//if(collider->GetContainer() != nullptr)
-			//	std::cout << ":" << collider->GetContainer()->GetObjectId();
-			//std::cout << "] for ";
-			//std::wcout << player_->GetCustomName() << std::endl;
+			std::cout << "Destroying [ " << collider->GetTemplate() << ":" << collider->GetObjectId(); 
+			if(collider->GetContainer() != nullptr)
+				std::cout << ":" << collider->GetContainer()->GetObjectId();
+			std::cout << "] for ";
+			std::wcout << player_->GetCustomName() << std::endl;
 			collider->SendDestroy(controller);
 			collider->Unsubscribe(controller);
 		}
 
-		/**collider->ViewObjects(nullptr, 0, true, [=](std::shared_ptr<swganh::object::Object> child) {
-			if(collider->IsInSnapshot() == false)
-			{
-				child->SendDestroy(controller);
-				child->Unsubscribe(controller);
-			}
-		});*/
+		collider->ViewObjects(nullptr, 0, true, [=](const std::shared_ptr<Object>& child) {
+		if(child->IsInSnapshot() == false)
+		{	
+			std::cout << "Destroying [ " << child->GetTemplate() << ":" << child->GetObjectId(); 
+			if(child->GetContainer() != nullptr)
+				std::cout << ":" << child->GetContainer()->GetObjectId();
+			std::cout << "] for ";
+			std::wcout << player_->GetCustomName() << std::endl;
+			child->SendDestroy(controller);
+			child->Unsubscribe(controller);
+		}
+		});
 	}
 }

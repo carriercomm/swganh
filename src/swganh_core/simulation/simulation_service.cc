@@ -247,7 +247,16 @@ public:
 		if(old_scene)
 		{
 			old_scene->RemoveObject(obj);
+
+			// Remove View Box
+			auto view_box = obj->GetViewBox();
+			if(view_box != nullptr)
+			{
+				old_scene->RemoveObject(view_box);
+				obj->SetViewBox(nullptr);
+			}
 		}
+
 
 		//Update the object's scene_id
 		obj->SetSceneId(scene_obj->GetSceneId());	
@@ -257,9 +266,12 @@ public:
 		obj->UpdateWorldCollisionBox();
 		obj->UpdateAABB();
 
-		// CmdStartScene
+		// We are transfering a player
 		if(controller != nullptr)
 		{
+			std::shared_ptr<PlayerViewBox> view_box = std::make_shared<PlayerViewBox>(obj);
+			obj->SetViewBox(view_box);
+
 			CmdStartScene start_scene;
 			start_scene.ignore_layout = 0;
 			start_scene.character_id = obj->GetObjectId();
@@ -274,8 +286,8 @@ public:
 				// Reset Controller
 				obj->SetController(controller);
 
-				// Add object to scene and send baselines
 				scene_obj->AddObject(obj);
+				scene_obj->AddObject(obj->GetViewBox());
 			});
 		}
 		else
@@ -418,7 +430,9 @@ public:
 
 				// Add to scene.
 				// note: View Box will later be attached to player.
-				scene->AddObject(object);
+				if(object->GetContainer() == nullptr) // Out container shouldn't be set yet unless we where loaded into a container.
+					scene->AddObject(object);
+
 				scene->AddObject(object->GetViewBox());
 		}));
     }

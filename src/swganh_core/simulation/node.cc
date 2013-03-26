@@ -10,7 +10,7 @@ std::stringstream current_collision_points;
 template <typename Point>
 void GetCollisionBoxPoints(Point const& p)
 {
-	current_collision_points << " " << p.x() << "," << p.y();
+	current_collision_points << " " << p.x() << "," << p.y() * -1.0f;
 }
 
 namespace quadtree
@@ -68,6 +68,7 @@ void Node::InsertObject(std::shared_ptr<swganh::object::Object> obj)
 		return;
 
 	objects_.insert(obj);
+	//objects_.push_back(obj);
 }
 
 bool Node::RemoveObject(std::shared_ptr<swganh::object::Object> obj)
@@ -163,12 +164,16 @@ swganh::object::Object::ObjectPtrSet Node::Query(QueryBox query_box)
 	std::for_each(objects_.begin(), objects_.end(), [=,& return_list](std::shared_ptr<swganh::object::Object> obj) {
 		if(boost::geometry::intersects(obj->GetAABB(), query_box)) {
 			return_list.insert(obj);
+			//return_list.push_back(obj);
 
 #ifdef SI_METHOD_TWO
 			// Check for children intersects.
 			obj->ViewObjects(nullptr, 0, true, [=, &return_list](std::shared_ptr<swganh::object::Object> child){
+				//std::cout << "Checking: " << child->GetTemplate() << ":" << child->GetObjectId() << std::endl;
 				if(boost::geometry::intersects(child->GetAABB(), query_box)) {
+					//std::cout << "Verified: " << child->GetTemplate() << ":" << child->GetObjectId() << std::endl;
 					return_list.insert(child);
+					//return_list.push_back(obj);
 				}
 			});
 #endif
@@ -184,14 +189,18 @@ swganh::object::Object::ObjectPtrSet Node::Query(QueryBox query_box)
 			{
 				auto sub_objects = node->GetContainedObjects();
 				return_list.insert(sub_objects.begin(), sub_objects.end());
+				//return_list.insert(return_list.end(), sub_objects.begin(), sub_objects.end());
 
 #ifdef SI_METHOD_TWO
 				for(auto& sub_object : sub_objects)
 				{
 					// Check for children intersects.
 					sub_object->ViewObjects(nullptr, 0, true, [=, &return_list](std::shared_ptr<swganh::object::Object> child){
+						//std::cout << "Checking: " << child->GetTemplate() << ":" << child->GetObjectId() << std::endl;
 						if(boost::geometry::intersects(child->GetAABB(), query_box)) {
+							//std::cout << "Verified: " << child->GetTemplate() << ":" << child->GetObjectId() << std::endl;
 							return_list.insert(child);
+							//return_list.push_back(child);
 						}
 					});
 				}
@@ -205,6 +214,7 @@ swganh::object::Object::ObjectPtrSet Node::Query(QueryBox query_box)
 			{
 				auto sub_objects = node->Query(query_box);
 				return_list.insert(sub_objects.begin(), sub_objects.end());
+				//return_list.insert(return_list.end(), sub_objects.begin(), sub_objects.end());
 				break;
 			}
 
@@ -213,6 +223,7 @@ swganh::object::Object::ObjectPtrSet Node::Query(QueryBox query_box)
 			{
 				auto sub_objects = node->Query(query_box);
 				return_list.insert( sub_objects.begin(), sub_objects.end() );
+				//return_list.insert(return_list.end(), sub_objects.begin(), sub_objects.end());
 			}
 		}
 	}
@@ -220,15 +231,16 @@ swganh::object::Object::ObjectPtrSet Node::Query(QueryBox query_box)
 	return return_list;
 }
 
-std::set<std::shared_ptr<swganh::object::Object>> Node::GetContainedObjects(void)
+swganh::object::Object::ObjectPtrSet Node::GetContainedObjects(void)
 {
-	std::set<std::shared_ptr<swganh::object::Object>> objs(objects_.begin(), objects_.end());
+	swganh::object::Object::ObjectPtrSet objs(objects_.begin(), objects_.end());
 	if(state_ == BRANCH)
 	{
 		for(const std::shared_ptr<Node> node : leaf_nodes_)
 		{
 			auto sub_objects = node->GetContainedObjects();
 			objs.insert(sub_objects.begin(), sub_objects.end());
+			//objs.insert(objs.end(), sub_objects.begin(), sub_objects.end());
 		}
 	}
 	return objs;
@@ -349,10 +361,11 @@ void Node::SvgDumpObjects(std::ofstream& file)
 			bounding_volume_points << " " << (*it).x() << "," << (*it).y() * -1.0f;
 		}
 
-		auto name = obj->GetCustomName();
+		auto name = obj->GetStfNameString();
 		glm::vec3 position;
-		obj->GetAbsolutes(position, glm::quat());
-		file << "<text x=\"" << position.x << "\" y=\"" << position.z * -1.0f << "\" fill=\"black\" style=\"text-anchor: middle;\" font-size=\"1px\">" << std::string(name.begin(), name.end()) << "<" << '/' << "text>\n";
+		glm::quat orientation;
+		obj->GetAbsolutes(position, orientation);
+		file << "<text x=\"" << position.x << "\" y=\"" << position.z * -1.0f << "\" fill=\"black\" style=\"text-anchor: middle;\" font-size=\"1px\">" << std::string(name.begin(), name.end()) << " " << "Object Id:" << obj->GetObjectId() <<  " " << "Orientation:" << glm::yaw(orientation) << "<" << '/' << "text>\n";
 		file << "<polygon points=\"" << bounding_volume_points.str() << "\" style=\"fill-opacity:0;fill:none;stroke:red;stroke-width:0.4px\"" << '/' << "> \n";
 		file << "<polygon points=\"" << current_collision_points.str() << "\" style=\"fill-opacity:0;fill:none;stroke:blue;stroke-width:0.4px\"" << '/' << "> \n";
 
@@ -371,10 +384,11 @@ void Node::SvgDumpObjects(std::ofstream& file)
 						bounding_volume_points << " " << (*it).x() << "," << (*it).y() * -1.0f;
 					}
 
-					auto name = child->GetCustomName();
+					auto name = child->GetStfNameString();
 					glm::vec3 position;
-					obj->GetAbsolutes(position, glm::quat());
-					file << "<text x=\"" << position.x << "\" y=\"" << position.z * -1.0f << "\" fill=\"black\" style=\"text-anchor: middle;\" font-size=\"1px\">" << std::string(name.begin(), name.end()) << "<" << '/' << "text>\n";
+					glm::quat orientation;
+					child->GetAbsolutes(position, orientation);
+					file << "<text x=\"" << position.x << "\" y=\"" << position.z * -1.0f << "\" fill=\"black\" style=\"text-anchor: middle;\" font-size=\"1px\">"  << std::string(name.begin(), name.end()) << " " << "Object Id:" << obj->GetObjectId() <<  " " << "Orientation:" << glm::yaw(orientation) << "<" << '/' << "text>\n";
 					file << "<polygon points=\"" << bounding_volume_points.str() << "\" style=\"fill-opacity:0;fill:none;stroke:red;stroke-width:0.4px\"" << '/' << "> \n";
 					file << "<polygon points=\"" << current_collision_points.str() << "\" style=\"fill-opacity:0;fill:none;stroke:blue;stroke-width:0.4px\"" << '/' << "> \n";
 		});

@@ -16,6 +16,7 @@
 #include "swganh_core/simulation/movement_manager.h"
 #include "swganh_core/messages/update_transform_message.h"
 #include "swganh_core/messages/update_transform_with_parent_message.h"
+#include "swganh_core/simulation/world_container.h"
 
 using namespace std;
 using namespace swganh::messages;
@@ -72,6 +73,9 @@ public:
         }
 
 		EraseObject(object);             
+
+		if(object->GetContainer() != spatial_index_->GetWorldContainer())
+			object->GetContainer()->RemoveObject(nullptr, object);
 
 		spatial_index_->RemoveObject(object);
     }
