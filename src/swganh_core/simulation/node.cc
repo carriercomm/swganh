@@ -365,7 +365,7 @@ void Node::SvgDumpObjects(std::ofstream& file)
 		glm::vec3 position;
 		glm::quat orientation;
 		obj->GetAbsolutes(position, orientation);
-		file << "<text x=\"" << position.x << "\" y=\"" << position.z * -1.0f << "\" fill=\"black\" style=\"text-anchor: middle;\" font-size=\"1px\">" << std::string(name.begin(), name.end()) << " " << "Object Id:" << obj->GetObjectId() <<  " " << "Orientation:" << glm::yaw(orientation) << "<" << '/' << "text>\n";
+		file << "<text x=\"" << position.x << "\" y=\"" << position.z * -1.0f << "\" fill=\"black\" style=\"text-anchor: middle;\" font-size=\"1px\">" << std::string(name.begin(), name.end()) << " " << "Object Id:" << obj->GetObjectId() <<  " " << "Orientation:" << glm::eulerAngles(orientation).y << "<" << '/' << "text>\n";
 		file << "<polygon points=\"" << bounding_volume_points.str() << "\" style=\"fill-opacity:0;fill:none;stroke:red;stroke-width:0.4px\"" << '/' << "> \n";
 		file << "<polygon points=\"" << current_collision_points.str() << "\" style=\"fill-opacity:0;fill:none;stroke:blue;stroke-width:0.4px\"" << '/' << "> \n";
 

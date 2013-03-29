@@ -189,10 +189,12 @@ void StaticService::_loadBuildings(SimulationServiceInterface* simulation_servic
 		if(object == nullptr)
 			continue;
 
+		// Note: oW and oY are currently switched because
+		// the extracted worldsnapshot data is erroneous.
 		object->SetOrientation(glm::quat(
-			static_cast<float>(result->getDouble(5)),
-			static_cast<float>(result->getDouble(2)),
 			static_cast<float>(result->getDouble(3)),
+			static_cast<float>(result->getDouble(2)),
+			static_cast<float>(result->getDouble(5)),
 			static_cast<float>(result->getDouble(4))));
 
 		object->SetPosition(glm::vec3(result->getDouble(6), result->getDouble(7), result->getDouble(8)));

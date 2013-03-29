@@ -330,13 +330,9 @@ void Object::__InternalGetAbsolutes(glm::vec3& pos, glm::quat& rot)
 	{
 		parentContainer->__InternalGetAbsolutes(pos, rot);
 	}
-	else
-	{
-		pos = glm::vec3();
-		rot = glm::quat();
-	}
 
 	boost::lock_guard<boost::mutex> lock(object_mutex_);
+
 	pos = (rot * position_) + pos;
 	rot = rot * orientation_;
 }

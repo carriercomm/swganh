@@ -731,21 +731,11 @@ protected:
 
 	virtual void __BuildCollisionBox(void)
 	{
-			local_collision_box_.clear();
-			if(collidable_)
-			{
-				boost::geometry::append(local_collision_box_, Point((-1.0f * collision_length_) / 2, (-1.0f * collision_length_) / 2));
-				boost::geometry::append(local_collision_box_, Point((-1.0f * collision_length_) / 2, collision_length_ / 2));
-				boost::geometry::append(local_collision_box_, Point(collision_length_ / 2, collision_length_ / 2));
-				boost::geometry::append(local_collision_box_, Point(collision_length_ / 2, (-1.0f * collision_length_) / 2));
-			}
-			else
-			{
-				boost::geometry::append(local_collision_box_, Point((-1.0f * collision_length_) / 2, (-1.0f * collision_length_) / 2));
-				boost::geometry::append(local_collision_box_, Point((-1.0f * collision_length_) / 2, collision_length_ / 2));
-				boost::geometry::append(local_collision_box_, Point(collision_length_ / 2, collision_length_ / 2));
-				boost::geometry::append(local_collision_box_, Point(collision_length_ / 2, (-1.0f * collision_length_) / 2));
-			}
+		local_collision_box_.clear();
+		boost::geometry::append(local_collision_box_, Point((-1.0f * collision_length_) / 2, (-1.0f * collision_length_) / 2));
+		boost::geometry::append(local_collision_box_, Point((-1.0f * collision_length_) / 2, collision_length_ / 2));
+		boost::geometry::append(local_collision_box_, Point(collision_length_ / 2, collision_length_ / 2));
+		boost::geometry::append(local_collision_box_, Point(collision_length_ / 2, (-1.0f * collision_length_) / 2));
 	}
 
 	std::shared_ptr<swganh::observer::ObserverInterface> controller_;
