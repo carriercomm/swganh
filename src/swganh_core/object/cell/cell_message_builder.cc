@@ -22,13 +22,13 @@ void CellMessageBuilder::RegisterEventHandlers()
 
 void CellMessageBuilder::SendBaselines(const std::shared_ptr<Cell>& cell, const std::shared_ptr<swganh::observer::ObserverInterface>& observer)
 {
-	cell->AddBaselineToCache(&BuildBaseline3(cell));
-    cell->AddBaselineToCache(&BuildBaseline6(cell));
+	observer->Notify(&BuildBaseline3(cell));
+    observer->Notify(&BuildBaseline6(cell));
 
-    for (auto& baseline : cell->GetBaselines())
+    /*for (auto& baseline : cell->GetBaselines())
     {
         observer->Notify(&baseline);
-    }
+    }*/
         
     SendEndBaselines(cell, observer);
 }

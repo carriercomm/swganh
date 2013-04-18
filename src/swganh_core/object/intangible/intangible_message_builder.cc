@@ -19,13 +19,13 @@ void IntangibleMessageBuilder::RegisterEventHandlers()
 
 void IntangibleMessageBuilder::SendBaselines(const std::shared_ptr<Intangible>& intangible, const std::shared_ptr<swganh::observer::ObserverInterface>& observer)
 {
-	intangible->AddBaselineToCache(&BuildBaseline3(intangible));
-    intangible->AddBaselineToCache(&BuildBaseline6(intangible));
+	observer->Notify(&BuildBaseline3(intangible));
+    observer->Notify(&BuildBaseline6(intangible));
 
-	for (auto& baseline : intangible->GetBaselines())
+	/*for (auto& baseline : intangible->GetBaselines())
     {
         observer->Notify(&baseline);
-    }
+    }*/
         
     SendEndBaselines(intangible, observer);
 }

@@ -52,6 +52,7 @@
 #include "swganh_core/simulation/movement_manager_interface.h"
 #include "player_view_box.h"
 #include "swganh_core/object/permissions/default_permission.h"
+#include "swganh_core/simulation/world_container.h"
 
 using namespace swganh;
 using namespace std;
@@ -269,6 +270,7 @@ public:
 		// We are transfering a player
 		if(controller != nullptr)
 		{
+
 			std::shared_ptr<PlayerViewBox> view_box = std::make_shared<PlayerViewBox>(obj);
 			obj->SetViewBox(view_box);
 
@@ -282,6 +284,10 @@ public:
 			start_scene.galaxy_time = 0;
 
 			controller->Notify(&start_scene, [=](uint16_t sequence) {
+
+				// Temp manual set of containers
+				//obj->SetContainer(scene_obj->GetWorldContainer());
+				//obj->SetContainer(scene_obj->GetWorldContainer());
 
 				// Reset Controller
 				obj->SetController(controller);

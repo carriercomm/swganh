@@ -135,7 +135,6 @@ void QuadtreeSpatialProvider::RemoveObject(shared_ptr<Object> object)
 
 	auto collided_objects = object->GetCollidedObjects(); // Copy
 	root_node_.RemoveObject(object);
-	object->SetContainer(nullptr);
 
 	// Manually trigger leave.
 	for(auto& collided_object : collided_objects)
@@ -146,6 +145,8 @@ void QuadtreeSpatialProvider::RemoveObject(shared_ptr<Object> object)
 		collided_object->RemoveCollidedObject(object);
 		object->RemoveCollidedObject(collided_object);
 	}
+
+	object->SetContainer(nullptr);
 
 
 	std::chrono::high_resolution_clock::time_point stop_time = std::chrono::high_resolution_clock::now();

@@ -174,6 +174,12 @@ const std::string& Scene::GetTerrainMap() const
 {
 	return impl_->GetDescription().terrain;
 }
+
+const std::shared_ptr<WorldContainer>& Scene::GetWorldContainer() const
+{
+	return impl_->GetSpatialIndex()->GetWorldContainer();
+}
+
 void Scene::AddObject(std::shared_ptr<swganh::object::Object> object)
 {
     impl_->AddObject(object);

@@ -21,13 +21,13 @@ void BuildingMessageBuilder::RegisterEventHandlers()
 
 void BuildingMessageBuilder::SendBaselines(const shared_ptr<Building>& tangible, const shared_ptr<swganh::observer::ObserverInterface>& observer)
 {
-    tangible->AddBaselineToCache(&BuildBaseline3(tangible));
-    tangible->AddBaselineToCache(&BuildBaseline6(tangible));
+    observer->Notify(&BuildBaseline3(tangible));
+    observer->Notify(&BuildBaseline6(tangible));
 
-    for (auto& baseline : tangible->GetBaselines())
+    /* for (auto& baseline : tangible->GetBaselines())
     {
         observer->Notify(&baseline);
-    }
+    }*/
         
     SendEndBaselines(tangible, observer);
 }

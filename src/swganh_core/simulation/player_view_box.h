@@ -19,6 +19,7 @@ namespace simulation {
 
 	private:
 		std::shared_ptr<swganh::object::Object> player_;
+		std::set<std::shared_ptr<swganh::object::Object>> aware_of_;
 	};
 
 }} // namespace swganh::simulation

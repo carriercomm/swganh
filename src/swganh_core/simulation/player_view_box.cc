@@ -31,15 +31,67 @@ PlayerViewBox::~PlayerViewBox()
 {
 }
 
-
+/**
+ * Whenever a new object collides with our view box, the following procedure happens:
+ * 
+ * - Collided object and player are made "aware" of each other.
+ * - Check to see if we are in a container, if we are:
+ *   - If our parent is already spawned or is a snapshot object, spawn the object.
+ * - Check to see if our player has a controller, if so spawn the object (and relevant children) if it's not in the world snapshot.
+ */
 void PlayerViewBox::OnCollisionEnter(std::shared_ptr<Object> collider)
 {
+	// At the very least, we are aware of this object now.
+	aware_of_.insert(collider);
+
 	// We only process top level objects, contained objects will
 	// be spawned along with top level objects to ensure correct
 	// ordering.
 	if(collider->GetContainer() != nullptr)
+	{
 		if(collider->GetContainer()->GetObjectId() != 0)
+		{
+			// We are already aware of the parent, this is a new object spawned
+			// after the parent.
+			if(aware_of_.find(std::static_pointer_cast<swganh::object::Object>(collider->GetContainer())) != aware_of_.end() 
+				&&
+				aware_of_.find(std::static_pointer_cast<swganh::object::Object>(collider)) == aware_of_.end())
+			{
+				// Add collided object to view.
+				auto& controller = player_->GetController();
+				if(controller != nullptr)
+				{
+					if(collider->IsInSnapshot() == false)
+					{
+						std::cout << "Creating2 [ " << collider->GetTemplate() << ":" << collider->GetObjectId(); 
+						if(collider->GetContainer() != nullptr)
+							std::cout << ":" << collider->GetContainer()->GetObjectId();
+						std::cout << "] for ";
+						std::wcout << player_->GetCustomName() << std::endl;
+						collider->Subscribe(controller);
+						collider->SendCreateByCrc(controller);
+						collider->CreateBaselines(controller);
+					}
+
+					collider->ViewObjects(nullptr, 0, true, [=](const std::shared_ptr<Object>& child) {
+							if(child->IsInSnapshot() == false)
+							{
+								std::cout << "Creating2 [ " << child->GetTemplate() << ":" << child->GetObjectId(); 
+								if(child->GetContainer() != nullptr)
+									std::cout << ":" << child->GetContainer()->GetObjectId();
+								std::cout << "] for ";
+								std::wcout << player_->GetCustomName() << std::endl;
+								child->Subscribe(controller);
+								child->SendCreateByCrc(controller);
+								child->CreateBaselines(controller);
+							}
+					});
+				}
+			}
+
 			return;
+		}
+	}
 
 	// Add collided object to view.
 	auto& controller = player_->GetController();
@@ -79,6 +131,8 @@ void PlayerViewBox::OnCollisionStay(std::shared_ptr<Object> collider)
 
 void PlayerViewBox::OnCollisionLeave(std::shared_ptr<Object> collider)
 {
+	aware_of_.erase(collider);
+
 	// We only process top level objects, contained objects will
 	// be spawned along with top level objects to ensure correct
 	// ordering.
